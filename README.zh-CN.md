@@ -3,7 +3,9 @@
 # 📋 复制到 Markdown
 
 *一个 Chrome 扩展，用于复制选定文本并将其转换为格式良好的 Markdown。*
-
+<p align="center">
+<a href="./README.md">English</a>
+</p>
 ## 🚀 功能
 
 * **自动 Markdown 转换**：通过一次点击瞬间将选定文本转换为 Markdown 格式。
@@ -13,19 +15,33 @@
 
 ## 📥 安装
 
-1. **克隆仓库**：
+* **克隆仓库**：
 
-   ```
-   bash
-   Copy code
-   git clone https://github.com/ShetePro/copy-to-markdown.git
-   ```
+  ```
+  bash
+  git clone https://github.com/ShetePro/copy-to-markdown.git
+  ```
 
-2. **在 Chrome 中加载扩展**：
+* **安装依赖**：
+
+  ```
+  bash
+  cd copy-to-markdown
+  npm install
+  ```
+
+* **打包扩展**：
+
+  ```
+  bash
+  npm run build
+  ```
+
+* **在 Chrome 中加载扩展**：
 
     * 转到 `chrome://extensions/`。
     * 启用 **开发者模式**（右上角的切换开关）。
-    * 点击 **加载已解压的扩展**，选择克隆的仓库文件夹。
+    * 点击 **加载已解压的扩展**，选择 `dist` 文件夹。
 
 ## 🛠 用法
 

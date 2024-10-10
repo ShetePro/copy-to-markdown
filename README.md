@@ -1,7 +1,11 @@
+***
+
 # 📋 Copy to Markdown
 
-*A Chrome extension to copy selected text and convert it into well-formatted Markdown.*
-
+*A Chrome extension that allows users to copy selected text and automatically convert it into well-formatted Markdown.*
+<p align="center">
+<a href="./README.zh-CN.md">简体中文</a>
+</p>
 ## 🚀 Features
 
 * **Automatic Markdown Conversion**: Instantly transform selected text into Markdown format with a single click.
@@ -14,14 +18,31 @@
 1. **Clone the Repository**:
 
    ```
+   bash
    git clone https://github.com/ShetePro/copy-to-markdown.git
    ```
 
-2. **Load the Extension in Chrome**:
+2. **Install Dependencies**:
+
+   ```
+   bash
+   cd copy-to-markdown
+   npm install
+   ```
+
+3. **Build the Extension**:
+
+   ```
+   bash
+   npm run build
+   ```
+
+4. **Load the Extension in Chrome**:
 
    * Navigate to `chrome://extensions/`.
    * Enable **Developer Mode** (toggle switch in the top-right corner).
-   * Click on **Load unpacked** and select the cloned repository folder.
+   * Click on **Load unpacked** and select the `build` folder.
+
 
 ## 🛠 Usage
 
