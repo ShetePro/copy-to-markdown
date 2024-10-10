@@ -1,12 +1,10 @@
-.popup-copy {
+.popupCopy {
   --background: #fff;
   --color: #202124;
   position: absolute;
   display: none;
   left: 0;
   top: 0;
-  width: 200px;
-  height: 55px;
   font-weight: 700;
   color: var(--color);
   flex-direction: column;
@@ -14,10 +12,11 @@
   justify-content: center;
   transition: all 0.3s ease-in-out;
   cursor: pointer;
+  z-index: 2147483647;
   user-select: none;
 }
 
-.popup-copy-show {
+.popupCopyShow {
   display: block;
   opacity: 1;
 }

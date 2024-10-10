@@ -1,4 +1,4 @@
-.copy-transform-btn {
+.copyTransformBtn {
   --background: #fff;
   --color: #202124;
   position: relative;
@@ -15,7 +15,7 @@
   background-color: var(--background);
   /*background-color: rgb(255, 65, 65);*/
 }
-.copy-transform-btn-container {
+.copyTransformBtnContainer {
   position: relative;
   display: flex;
   align-items: center;
@@ -26,10 +26,10 @@
   transition-duration: 0.3s;
   border-radius: 50%;
 }
-.btn-success {
+.btnSuccess {
   --background: #00ad54;
 }
-.btn-error {
+.btnError {
   --background: #e52441;
 }
 
@@ -47,9 +47,6 @@
   height: 20px;
 }
 
-.sign svg path {
-  /*fill: white;*/
-}
 /* text */
 .text {
   position: absolute;
@@ -62,25 +59,25 @@
   transition-duration: 0.3s;
 }
 /* hover effect on button width */
-.copy-transform-btn:hover {
-  width: 150px;
+.copyTransformBtn:hover {
+  width: 130px;
   border-radius: 40px;
   transition-duration: 0.3s;
 }
 
-.copy-transform-btn:hover .sign {
+.copyTransformBtn:hover .sign {
   width: 30%;
   transition-duration: 0.3s;
 }
 /* hover effect button's text */
-.copy-transform-btn:hover .text {
+.copyTransformBtn:hover .text {
   opacity: 1;
   width: 70%;
   transition-duration: 0.3s;
   padding-right: 10px;
 }
 /* button click effect*/
-.copy-transform-btn:active {
+.copyTransformBtn:active {
   transform: translate(2px, 2px);
 }
 
@@ -109,7 +106,7 @@
   transform: translate(-50%) rotate(45deg);
   transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
-.btn-finish {
+.btnFinish {
   --color: #fff;
   color: var(--color);
   /*background: linear-gradient(320deg, rgb(3, 77, 146), rgb(0, 60, 255));*/

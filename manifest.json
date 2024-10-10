@@ -1,51 +1,32 @@
 {
-  "name": "Live Chat Extension",
-  "description": "in live stream record chats",
+  "name": "Copy To Markdown",
+  "description": "Convert copied content to markdown format",
   "version": "1.0",
   "manifest_version": 3,
+  "icons": {
+    "32": "public/markdown_32.png",
+    "48": "public/markdown_48.png",
+    "128": "public/markdown_128.png"
+  },
   "web_accessible_resources": [
     {
       "resources": ["/src/*", "assets/*"],
-      "matches": ["https://live.bilibili.com/*", "https://www.huya.com/*", "https://www.douyu.com/*", "https://www.youtube.com/*"]
+      "matches": ["<all_urls>"]
     }
   ],
   "action": {
     "default_popup": "index.html",
-    "default_icon": "public/popup.png",
-    "default_title": "Live Chat Extension"
+    "default_icon": "public/markdown_128.png",
+    "default_title": "Copy To Markdown"
   },
   "background": {
     "service_worker": "src/background/index.js"
   },
   "content_scripts": [
     {
-      "matches": ["https://live.bilibili.com/*"],
+      "matches": ["<all_urls>"],
       "type": "module",
-      "js": ["src/content/bilibili.ts"],
-      "run_at": "document_end"
-    },
-    {
-      "matches": ["https://www.huya.com/*"],
-      "type": "module",
-      "js": ["src/content/huya.ts"],
-      "run_at": "document_end"
-    },
-    {
-      "matches": ["https://www.douyu.com/*"],
-      "type": "module",
-      "js": ["src/content/douyu.ts"],
-      "run_at": "document_end"
-    },
-    {
-      "matches": ["https://www.youtube.com/*"],
-      "type": "module",
-      "js": ["src/content/youtube.ts"],
-      "run_at": "document_end"
-    },
-    {
-      "matches": ["https://www.twitch.tv/*"],
-      "type": "module",
-      "js": ["src/content/huya.ts"],
+      "js": ["src/content/index.js"],
       "run_at": "document_end"
     }
   ],
