@@ -57,6 +57,7 @@
   font-weight: 600;
   color: var(--color);
   transition-duration: 0.3s;
+  white-space: nowrap;
 }
 /* hover effect on button width */
 .copyTransformBtn:hover {
