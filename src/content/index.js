@@ -39,10 +39,10 @@ function createPopup() {
 const texClass = ["base", "katex-html", "katex"];
 function selectorHandle() {
   return new Promise((resolve, reject) => {
+    console.log('click')
     try {
       // 获取选择的内容
       const selectedText = window.getSelection();
-      if (selectedText.isCollapsed) return;
       const ranges = [];
       const { rangeCount } = selectedText;
       for (let i = 0; i < rangeCount; ++i) {
@@ -51,11 +51,14 @@ function selectorHandle() {
         astHtmlToMarkdown(copyNode)
           .then((res) => {
             console.log("已转换成markdown");
-            console.log(res);
-            navigator.clipboard.writeText(res);
+            console.log(res || selectedText.toString());
+            navigator.clipboard.writeText(res || selectedText.toString());
             resolve(res);
           })
-          .catch(reject);
+          .catch((e) => {
+            console.error(e)
+            reject(e)
+          });
       }
     } catch (e) {
       reject(e);
@@ -67,6 +70,7 @@ function transformRange(range) {
   const dom = hasTexNode(commonAncestorContainer)
     ? getParentNodeIsTexNode(commonAncestorContainer)
     : range.cloneContents();
+  console.log(dom)
   return setKatexText(dom);
 }
 // 设置Tex Node 转为 markdown 格式
