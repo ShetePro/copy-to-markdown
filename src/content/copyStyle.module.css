@@ -1,0 +1,23 @@
+.popup-copy {
+  --background: #fff;
+  --color: #202124;
+  position: absolute;
+  display: none;
+  left: 0;
+  top: 0;
+  width: 200px;
+  height: 55px;
+  font-weight: 700;
+  color: var(--color);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+  user-select: none;
+}
+
+.popup-copy-show {
+  display: block;
+  opacity: 1;
+}

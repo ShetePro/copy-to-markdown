@@ -1,0 +1,53 @@
+{
+  "name": "Live Chat Extension",
+  "description": "in live stream record chats",
+  "version": "1.0",
+  "manifest_version": 3,
+  "web_accessible_resources": [
+    {
+      "resources": ["/src/*", "assets/*"],
+      "matches": ["https://live.bilibili.com/*", "https://www.huya.com/*", "https://www.douyu.com/*", "https://www.youtube.com/*"]
+    }
+  ],
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": "public/popup.png",
+    "default_title": "Live Chat Extension"
+  },
+  "background": {
+    "service_worker": "src/background/index.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://live.bilibili.com/*"],
+      "type": "module",
+      "js": ["src/content/bilibili.ts"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["https://www.huya.com/*"],
+      "type": "module",
+      "js": ["src/content/huya.ts"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["https://www.douyu.com/*"],
+      "type": "module",
+      "js": ["src/content/douyu.ts"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "type": "module",
+      "js": ["src/content/youtube.ts"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["https://www.twitch.tv/*"],
+      "type": "module",
+      "js": ["src/content/huya.ts"],
+      "run_at": "document_end"
+    }
+  ],
+  "permissions": ["storage", "declarativeContent", "tabs"]
+}
