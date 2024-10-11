@@ -39,7 +39,6 @@ function createPopup() {
 const texClass = ["base", "katex-html", "katex"];
 function selectorHandle() {
   return new Promise((resolve, reject) => {
-    console.log('click')
     try {
       // 获取选择的内容
       const selectedText = window.getSelection();
@@ -50,7 +49,6 @@ function selectorHandle() {
         const copyNode = transformRange(ranges[i]);
         astHtmlToMarkdown(copyNode)
           .then((res) => {
-            console.log("已转换成markdown");
             console.log(res || selectedText.toString());
             navigator.clipboard.writeText(res || selectedText.toString());
             resolve(res);
@@ -70,7 +68,6 @@ function transformRange(range) {
   const dom = hasTexNode(commonAncestorContainer)
     ? getParentNodeIsTexNode(commonAncestorContainer)
     : range.cloneContents();
-  console.log(dom)
   return setKatexText(dom);
 }
 // 设置Tex Node 转为 markdown 格式
@@ -109,21 +106,10 @@ async function astHtmlToMarkdown(node) {
   const container = document.createElement("div");
   container.append(node);
   const html = container.innerHTML;
-  const processedContent = html.replace(
-    /<div class="math math-display">(.*?)<\/div>/gs,
-    (match, p1) => {
-      // 检查内容是否以小括号或中括号开头
-      if (!/^[\[\(]/.test(p1.trim())) {
-        // 如果不是，则用中括号包起来
-        return `<div class="math math-display">[ ${p1.trim()} ]</div>`;
-      }
-      return match;
-    },
-  );
   const html2Markdown = await unified()
     .use(rehypeParse)
     .use(rehypeRemark)
     .use(remarkStringify)
-    .process(processedContent);
+    .process(html);
   return html2Markdown.value;
 }
