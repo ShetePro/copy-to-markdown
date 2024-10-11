@@ -9,14 +9,14 @@ export class PopupCopy {
     const button = createButton({
       clickCallback: options.click,
     });
-    const sheets = new CSSStyleSheet()
-    sheets.replaceSync(ButtonStyle)
-    this.shadowRoot.adoptedStyleSheets = [sheets]
+    const sheets = new CSSStyleSheet();
+    sheets.replaceSync(ButtonStyle);
+    this.shadowRoot.adoptedStyleSheets = [sheets];
     this.shadowRoot.append(button);
     this.popup.classList.add(PopupClass.popupCopy);
-    this.width = 200;
+    this.width = 130;
     this.height = 55;
-    this.offset = [-0, 20];
+    this.offset = [20, 20];
     this.isShow = false;
     this.position = {
       x: options.x,
@@ -28,8 +28,8 @@ export class PopupCopy {
   }
   show() {
     this.popup.classList.add(PopupClass.popupCopyShow);
-    const maxWidth = document.body.clientWidth - this.width;
-    const maxHeight = document.body.clientHeight - this.height;
+    const maxWidth = document.documentElement.clientWidth - this.width;
+    const maxHeight = document.documentElement.clientHeight - this.height;
     const translateX = Math.max(
       0,
       Math.min(this.position.x + this.offset[0], maxWidth),

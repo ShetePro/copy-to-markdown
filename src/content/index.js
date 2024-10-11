@@ -2,24 +2,21 @@ import { unified } from "unified";
 import rehypeParse from "rehype-parse";
 import rehypeRemark from "rehype-remark";
 import remarkStringify from "remark-stringify";
-import { debounce, getTextNodeRect, hasSelector } from "../util.js";
+import { hasSelector } from "../util.js";
 import { PopupCopy } from "./popupCopy.js";
 import "./copyStyle.module.css";
 const position = { x: 0, y: 0 };
 let popupCopy = null;
 document.addEventListener("mouseup", (event) => {
-  const { pageX } = event;
+  const { target, x, y } = event;
   // 异步获取选中内容
   setTimeout(() => {
     if (hasSelector()) {
-      const selector = window.getSelection();
-      const { anchorNode, focusNode } = selector;
-      const range = selector.getRangeAt(selector.rangeCount - 1);
-      const rect = range.getBoundingClientRect();
-      const isLeft = Math.abs(pageX - rect.left) < Math.abs(pageX - rect.right);
-      position.x = isLeft ? rect.left : rect.right;
-      position.y = rect.bottom;
-      createPopup();
+      if (target !== popupCopy?.popup) {
+        position.x = x;
+        position.y = y;
+        createPopup();
+      }
     } else {
       popupCopy?.hide();
     }
@@ -54,8 +51,8 @@ function selectorHandle() {
             resolve(res);
           })
           .catch((e) => {
-            console.error(e)
-            reject(e)
+            console.error(e);
+            reject(e);
           });
       }
     } catch (e) {
