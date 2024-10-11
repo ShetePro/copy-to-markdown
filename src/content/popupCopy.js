@@ -1,12 +1,18 @@
 import { createButton } from "./button.js";
 import PopupClass from "./copyStyle.module.css";
+import ButtonStyle from "./button.module.css?inline";
+
 export class PopupCopy {
   constructor(options) {
     this.popup = document.createElement("div");
+    this.shadowRoot = this.popup.attachShadow({ mode: "open" });
     const button = createButton({
       clickCallback: options.click,
     });
-    this.popup.append(button);
+    const sheets = new CSSStyleSheet()
+    sheets.replaceSync(ButtonStyle)
+    this.shadowRoot.adoptedStyleSheets = [sheets]
+    this.shadowRoot.append(button);
     this.popup.classList.add(PopupClass.popupCopy);
     this.width = 200;
     this.height = 55;
