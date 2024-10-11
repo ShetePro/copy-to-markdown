@@ -6,6 +6,7 @@
 <p align="center">
 <a href="./README.zh-CN.md">简体中文</a>
 </p>
+
 ## 🚀 Features
 
 * **Automatic Markdown Conversion**: Instantly transform selected text into Markdown format with a single click.
