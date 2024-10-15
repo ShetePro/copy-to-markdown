@@ -15,7 +15,9 @@
 * **Flexible**: Works on any website, useful for copying articles, documentation, or code snippets.
 
 ## 📥 Installation
+>You can download the [Copy to Markdown](https://chromewebstore.google.com/detail/copy-to-markdown/fflojeofcghhceclfeialkpdajephlnl) plugin from the Chrome web store。
 
+Or install locally
 1. **Clone the Repository**:
 
    ```

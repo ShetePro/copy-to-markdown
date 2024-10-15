@@ -6,6 +6,7 @@
 <p align="center">
 <a href="./README.md">English</a>
 </p>
+
 ## 🚀 功能
 
 * **自动 Markdown 转换**：通过一次点击瞬间将选定文本转换为 Markdown 格式。
@@ -14,7 +15,9 @@
 * **灵活性**：适用于任何网站，方便复制文章、文档或代码片段。
 
 ## 📥 安装
+>你可以在 chrome web store 下载 [Copy to Markdown](https://chromewebstore.google.com/detail/copy-to-markdown/fflojeofcghhceclfeialkpdajephlnl) 插件 。
 
+或者本地安装
 * **克隆仓库**：
 
   ```
