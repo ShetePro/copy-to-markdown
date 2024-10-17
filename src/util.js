@@ -20,7 +20,7 @@ export function debounce(func, wait, immediate) {
 export function hasSelector() {
   const selector = window.getSelection().toString();
   // 去除空白字符
-  const selectText = selector.replace(/\s+/g, '')
+  const selectText = selector.replace(/\s+/g, "");
   return selector?.isCollapsed === false || selectText.length > 0;
 }
 

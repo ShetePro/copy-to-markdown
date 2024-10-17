@@ -46,9 +46,13 @@ function selectorHandle() {
         const copyNode = transformRange(ranges[i]);
         astHtmlToMarkdown(copyNode)
           .then((res) => {
-            console.log(res || selectedText.toString());
-            navigator.clipboard.writeText(res || selectedText.toString());
-            resolve(res);
+            // 正则替换 TEX中的\_为_
+            const markdownText = res.replace(/\$(.*?)\$/g, (match, content) => {
+              return `$${content.replace(/\\_/g, '_')}$`;
+            });
+            navigator.clipboard.writeText(markdownText || selectedText.toString());
+            console.log(markdownText || selectedText.toString());
+            resolve(markdownText);
           })
           .catch((e) => {
             console.error(e);
@@ -98,7 +102,6 @@ function getParentNodeIsTexNode(node, max = 10) {
 function transformTex(text) {
   return `$${text}$`;
 }
-
 async function astHtmlToMarkdown(node) {
   const container = document.createElement("div");
   container.append(node);
