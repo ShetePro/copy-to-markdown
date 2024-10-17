@@ -1,7 +1,7 @@
 {
   "name": "Copy To Markdown",
   "description": "Convert copied content to markdown format",
-  "version": "1.0",
+  "version": "1.1",
   "manifest_version": 3,
   "icons": {
     "32": "public/markdown_32.png",
@@ -10,7 +10,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["/src/*", "assets/*"],
+      "resources": ["src/*", "assets/*"],
       "matches": ["<all_urls>"]
     }
   ],
@@ -21,6 +21,10 @@
   },
   "background": {
     "service_worker": "src/background/index.js"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'",
+    "sandbox": "sandbox allow-scripts allow-forms allow-popups allow-modals; script-src 'self' 'unsafe-inline' 'unsafe-eval'; child-src 'self';"
   },
   "content_scripts": [
     {
