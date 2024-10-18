@@ -2,7 +2,7 @@ import { unified } from "unified";
 import rehypeParse from "rehype-parse";
 import rehypeRemark from "rehype-remark";
 import remarkStringify from "remark-stringify";
-import { hasSelector } from "../util.js";
+import { hasSelector, unTexMarkdownEscaping } from "../util.js";
 import { PopupCopy } from "./popupCopy.js";
 import "./copyStyle.module.css";
 const position = { x: 0, y: 0 };
@@ -46,12 +46,15 @@ function selectorHandle() {
         const copyNode = transformRange(ranges[i]);
         astHtmlToMarkdown(copyNode)
           .then((res) => {
-            console.log(res || selectedText.toString());
-            navigator.clipboard.writeText(res || selectedText.toString());
-            resolve(res);
+            // 正则替换 TEX中的\_为_
+            const markdownText = unTexMarkdownEscaping(res);
+            navigator.clipboard.writeText(
+              markdownText || selectedText.toString(),
+            );
+            console.log(markdownText || selectedText.toString());
+            resolve(markdownText);
           })
           .catch((e) => {
-            console.error(e);
             reject(e);
           });
       }
@@ -62,7 +65,8 @@ function selectorHandle() {
 }
 function transformRange(range) {
   const { commonAncestorContainer } = range;
-  const dom = hasTexNode(commonAncestorContainer)
+  const isTexNode = hasTexNode(commonAncestorContainer);
+  const dom = isTexNode
     ? getParentNodeIsTexNode(commonAncestorContainer)
     : range.cloneContents();
   return setKatexText(dom);
@@ -74,8 +78,14 @@ function setKatexText(node) {
   }
   const katexList = node.querySelectorAll(".katex");
   for (const katex of katexList) {
-    const annotationNode = katex.querySelector("annotation");
-    katex.textContent = transformTex(annotationNode?.textContent);
+    let annotationNode = katex.querySelector("annotation");
+    const { focusNode, anchorNode } = getSelection();
+    const lastTextNode = focusNode.nodeType === Node.TEXT_NODE ? focusNode : anchorNode
+    // 如果不存在annotation 标签则将用text 节点向上查找 katex节点
+    if (!annotationNode) {
+      annotationNode = getParentNodeIsTexNode(lastTextNode)?.querySelector("annotation");
+    }
+    katex.textContent = transformTex(annotationNode?.textContent || lastTextNode.nodeValue || '');
   }
   return node;
 }
@@ -98,7 +108,6 @@ function getParentNodeIsTexNode(node, max = 10) {
 function transformTex(text) {
   return `$${text}$`;
 }
-
 async function astHtmlToMarkdown(node) {
   const container = document.createElement("div");
   container.append(node);

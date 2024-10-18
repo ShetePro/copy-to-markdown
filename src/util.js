@@ -20,7 +20,7 @@ export function debounce(func, wait, immediate) {
 export function hasSelector() {
   const selector = window.getSelection().toString();
   // 去除空白字符
-  const selectText = selector.replace(/\s+/g, '')
+  const selectText = selector.replace(/\s+/g, "");
   return selector?.isCollapsed === false || selectText.length > 0;
 }
 
@@ -28,4 +28,17 @@ export function getTextNodeRect(node) {
   const range = document.createRange();
   range.selectNodeContents(node);
   return range?.getBoundingClientRect();
+}
+
+// 取消TEX中的markdown 转义
+export function unTexMarkdownEscaping(res) {
+  return res.replace(/\$(.*?)\$/g, (match) => {
+    // _ [] {} 进行反转义
+    return match
+      .replace(/\\_/g, "_")
+      .replace(/\\\[/g, "[")
+      .replace(/\\]/g, "]")
+      .replace(/\\\{/g, "{")
+      .replace(/\\}/g, "}");
+  });
 }
