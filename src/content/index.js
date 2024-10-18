@@ -55,7 +55,6 @@ function selectorHandle() {
             resolve(markdownText);
           })
           .catch((e) => {
-            console.error(e);
             reject(e);
           });
       }
@@ -66,7 +65,8 @@ function selectorHandle() {
 }
 function transformRange(range) {
   const { commonAncestorContainer } = range;
-  const dom = hasTexNode(commonAncestorContainer)
+  const isTexNode = hasTexNode(commonAncestorContainer);
+  const dom = isTexNode
     ? getParentNodeIsTexNode(commonAncestorContainer)
     : range.cloneContents();
   return setKatexText(dom);
@@ -78,8 +78,14 @@ function setKatexText(node) {
   }
   const katexList = node.querySelectorAll(".katex");
   for (const katex of katexList) {
-    const annotationNode = katex.querySelector("annotation");
-    katex.textContent = transformTex(annotationNode?.textContent);
+    let annotationNode = katex.querySelector("annotation");
+    const { focusNode, anchorNode } = getSelection();
+    const lastTextNode = focusNode.nodeType === Node.TEXT_NODE ? focusNode : anchorNode
+    // 如果不存在annotation 标签则将用text 节点向上查找 katex节点
+    if (!annotationNode) {
+      annotationNode = getParentNodeIsTexNode(lastTextNode)?.querySelector("annotation");
+    }
+    katex.textContent = transformTex(annotationNode?.textContent || lastTextNode.nodeValue || '');
   }
   return node;
 }
