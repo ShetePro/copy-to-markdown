@@ -29,3 +29,16 @@ export function getTextNodeRect(node) {
   range.selectNodeContents(node);
   return range?.getBoundingClientRect();
 }
+
+// 取消TEX中的markdown 转义
+export function unTexMarkdownEscaping(res) {
+  return res.replace(/\$(.*?)\$/g, (match) => {
+    // _ [] {} 进行反转义
+    return match
+      .replace(/\\_/g, "_")
+      .replace(/\\\[/g, "[")
+      .replace(/\\]/g, "]")
+      .replace(/\\\{/g, "{")
+      .replace(/\\}/g, "}");
+  });
+}

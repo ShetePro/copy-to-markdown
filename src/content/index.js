@@ -2,7 +2,7 @@ import { unified } from "unified";
 import rehypeParse from "rehype-parse";
 import rehypeRemark from "rehype-remark";
 import remarkStringify from "remark-stringify";
-import { hasSelector } from "../util.js";
+import { hasSelector, unTexMarkdownEscaping } from "../util.js";
 import { PopupCopy } from "./popupCopy.js";
 import "./copyStyle.module.css";
 const position = { x: 0, y: 0 };
@@ -47,10 +47,10 @@ function selectorHandle() {
         astHtmlToMarkdown(copyNode)
           .then((res) => {
             // 正则替换 TEX中的\_为_
-            const markdownText = res.replace(/\$(.*?)\$/g, (match, content) => {
-              return `$${content.replace(/\\_/g, '_')}$`;
-            });
-            navigator.clipboard.writeText(markdownText || selectedText.toString());
+            const markdownText = unTexMarkdownEscaping(res);
+            navigator.clipboard.writeText(
+              markdownText || selectedText.toString(),
+            );
             console.log(markdownText || selectedText.toString());
             resolve(markdownText);
           })
