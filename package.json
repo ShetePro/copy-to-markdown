@@ -10,7 +10,7 @@
   },
   "private": true,
   "devDependencies": {
-    "@crxjs/vite-plugin": "2.0.0-beta.25",
+    "@crxjs/vite-plugin": "2.0.0-beta.26",
     "postcss": "^8.4.47",
     "postcss-modules": "^6.0.0",
     "prettier": "^3.3.3",
