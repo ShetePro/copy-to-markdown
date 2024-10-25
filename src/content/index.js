@@ -2,7 +2,7 @@ import { unified } from "unified";
 import rehypeParse from "rehype-parse";
 import rehypeRemark from "rehype-remark";
 import remarkStringify from "remark-stringify";
-import { hasSelector, unTexMarkdownEscaping } from "../util.js";
+import { hasSelector, unTexMarkdownEscaping } from "../utils/util.js";
 import { PopupCopy } from "./popupCopy.js";
 import "./copyStyle.module.css";
 const position = { x: 0, y: 0 };
