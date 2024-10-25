@@ -1,0 +1,35 @@
+@import "checkbox.css";
+html, body {
+  margin: 0;
+  padding: 0;
+}
+:root {
+  --primary-color: #0D7C66;
+  --secondary-color: #41B3A2;
+  --third-color: #BDE8CA;
+  --purple-color: #D7C3F1;
+  --text-color: #fff;
+  --app-bg: #EEEEEE;
+}
+#app {
+  width: 300px;
+  height: 400px;
+  background-color: var(--app-bg);
+  .app-header {
+    color: var(--text-color);
+    text-align: center;
+    padding: 0.5rem;
+    background-color: var(--primary-color);
+  }
+  .setting-item {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin: 5px;
+    padding: 5px 1rem;
+    background-color: white;
+  }
+  .setting-open {
+  }
+}
