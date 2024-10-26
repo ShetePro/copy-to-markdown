@@ -34,5 +34,5 @@
       "run_at": "document_end"
     }
   ],
-  "permissions": ["contextMenus"]
+  "permissions": ["contextMenus", "storage"]
 }

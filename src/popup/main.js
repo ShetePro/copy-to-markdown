@@ -1,17 +1,20 @@
 import { openSettingRender } from "./render/settingRender.js";
-import { defaultStorage, getChromeStorage } from "../utils/chromeStorage.js";
+import { getChromeStorage } from "../utils/chromeStorage.js";
 import { clipboardEditorRender } from "./render/copyRender.js";
+import settingStore from "./store.js";
+const [setting, { changeSetting }] = settingStore();
 
+getChromeStorage().then((res) => {
+  changeSetting(res);
+  popupContent();
+});
 const popupContent = () => {
   const app = document.getElementById("app");
   const header = document.createElement("header");
-  const state = defaultStorage || getChromeStorage();
   header.innerHTML = `<h2>Copy To Markdown</h2>`;
   header.classList.add("app-header");
-  const openSettings = openSettingRender(state);
+  const openSettings = openSettingRender();
   const copyEditor = clipboardEditorRender();
   app.append(header, openSettings, copyEditor);
   document.body.appendChild(app);
 };
-
-popupContent();
