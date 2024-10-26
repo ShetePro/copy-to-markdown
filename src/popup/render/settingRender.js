@@ -1,4 +1,3 @@
-import { setChromeStorage, storageKey } from "../../utils/chromeStorage.js";
 import settingStore from "../store.js";
 
 export function openSettingRender() {
@@ -35,8 +34,6 @@ export function openSettingRender() {
     changeSetting({
       [value]: checked,
     });
-    console.log(value, checked);
-    console.log(setting);
   }
 
   function setConfig() {}

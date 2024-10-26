@@ -1,9 +1,32 @@
-import { getChromeStorage, storageKey } from "../utils/chromeStorage.js";
+import {
+  getChromeStorage,
+  storageKey,
+  watchChromeStorage,
+} from "../utils/chromeStorage.js";
 
 let text = "";
 let isOpenPopup = false;
 const contextMenuId = "CopyToMarkdownContextMenu";
+
+chrome.runtime.onInstalled.addListener(() => {
+  getChromeStorage(storageKey).then((res) => {
+    res.contextMenus && setContextMenus(res.contextMenus);
+  });
+});
+/*
+* Establish a long connection to monitor the closing of the popup
+* Because when sendingMessage in the background, if the popup is not opened, an error will be reported
+* Error: Could not establish connection. Receiving end does not exist
+* */
+chrome.runtime.onConnect.addListener((externalPort) => {
+  externalPort.onDisconnect.addListener(() => {
+    isOpenPopup = false;
+    console.log("onDisconnect");
+  });
+});
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log("传递消息", request);
   if (sender.tab) {
     text = request.message;
     isOpenPopup && chrome.runtime.sendMessage(text);
@@ -16,12 +39,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
   }
 });
-getChromeStorage(storageKey).then((res) => {
-  res.contextMenus && setContextMenus(res.contextMenus);
-});
-chrome.storage.onChanged.addListener((changes, areaName) => {
-  if (areaName === "local" && changes[storageKey]) {
-    const { newValue } = changes[storageKey];
+watchChromeStorage((changes) => {
+  const { newValue, oldValue } = changes;
+  if (newValue.contextMenus !== oldValue.contextMenus) {
     setContextMenus(newValue?.contextMenus);
   }
 });
@@ -47,6 +67,8 @@ function setContextMenus(show) {
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === contextMenuId) {
     // send message on content
-    chrome.tabs.sendMessage(tab.id, "transformToMarkdown");
+    if (!!tab.id) {
+      chrome.tabs.sendMessage(tab.id, "transformToMarkdown");
+    }
   }
 });

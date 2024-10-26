@@ -13,7 +13,6 @@ export function clipboardEditorRender(text) {
 export function createEditor() {
   const editor = document.createElement("div");
   editor.classList.add("clipboard-editor-input");
-  console.log("watch 变更");
   // first get copy text
   chrome.runtime.sendMessage("getClipboardEditor", (message) => {
     clipMarkdownText = message || "";
