@@ -9,9 +9,39 @@ import {
 } from "../utils/util.js";
 import { PopupCopy } from "./popupCopy.js";
 import "./copyStyle.module.css";
+import {
+  defaultStorage,
+  getChromeStorage,
+  storageKey,
+  watchChromeStorage,
+} from "../utils/chromeStorage.js";
 const position = { x: 0, y: 0 };
 let popupCopy = null;
-document.addEventListener("mouseup", (event) => {
+export let setting = {};
+getChromeStorage().then((res) => {
+  setting = res;
+  initEvent();
+});
+
+watchChromeStorage((changes) => {
+  const { newValue, oldValue } = changes;
+  setting = newValue;
+  if (newValue.selectionPopup !== oldValue.selectionPopup) {
+    newValue.selectionPopup ? createPopup() : popupCopy?.hide();
+  }
+});
+// contentMenu click event
+chrome.runtime.onMessage.addListener((response) => {
+  if (response === "transformToMarkdown") {
+    selectorHandle();
+  }
+});
+
+function initEvent() {
+  document.addEventListener("mouseup", bindPopupEvent);
+}
+
+function bindPopupEvent(event) {
   const { target, x, y } = event;
   // 异步获取选中内容
   setTimeout(() => {
@@ -19,13 +49,14 @@ document.addEventListener("mouseup", (event) => {
       if (target !== popupCopy?.popup) {
         position.x = x;
         position.y = y;
-        createPopup();
+        setting.selectionPopup && createPopup();
       }
     } else {
       popupCopy?.hide();
     }
   });
-});
+}
+
 function createPopup() {
   if (!popupCopy) {
     popupCopy = new PopupCopy({
@@ -37,12 +68,7 @@ function createPopup() {
   popupCopy?.setPosition(position);
   popupCopy?.show();
 }
-// contentMenu click event
-chrome.runtime.onMessage.addListener((response) => {
-  if (response === "transformToMarkdown") {
-    selectorHandle();
-  }
-});
+
 const texClass = ["base", "katex-html", "katex"];
 function selectorHandle() {
   return new Promise((resolve, reject) => {
@@ -67,7 +93,6 @@ function selectorHandle() {
             resolve(markdownText);
           })
           .catch((e) => {
-            console.log(e);
             reject(e);
           });
       }
