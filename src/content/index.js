@@ -37,6 +37,12 @@ function createPopup() {
   popupCopy?.setPosition(position);
   popupCopy?.show();
 }
+// contentMenu click event
+chrome.runtime.onMessage.addListener((response) => {
+  if (response === "transformToMarkdown") {
+    selectorHandle();
+  }
+});
 const texClass = ["base", "katex-html", "katex"];
 function selectorHandle() {
   return new Promise((resolve, reject) => {
