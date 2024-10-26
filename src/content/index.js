@@ -54,6 +54,10 @@ function selectorHandle() {
             const markdownText = unTexMarkdownEscaping(res);
             writeTextClipboard(markdownText || selectedText.toString());
             console.log(markdownText || selectedText.toString());
+            chrome.runtime.sendMessage({
+              extensionId: chrome.runtime.id,
+              message: markdownText,
+            });
             resolve(markdownText);
           })
           .catch((e) => {

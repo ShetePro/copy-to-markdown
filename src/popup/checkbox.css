@@ -3,11 +3,7 @@
   --text: #414856;
   --check: var(--primary-color);
   --disabled: #c3c8de;
-  --width: 120px;
-  --height: 120px;
   --border-radius: 10px;
-  /*width: var(--width);*/
-  /*height: var(--height);*/
   border-radius: var(--border-radius);
   background-color: var(--background);
   position: relative;
@@ -36,6 +32,7 @@
   width: fit-content;
   transition: color 0.3s ease;
   transform: translateX(4px);
+  user-select: none;
 }
 
 #checklist label::before,

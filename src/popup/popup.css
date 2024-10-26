@@ -1,19 +1,25 @@
 @import "checkbox.css";
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
 }
 :root {
-  --primary-color: #0D7C66;
-  --secondary-color: #41B3A2;
-  --third-color: #BDE8CA;
-  --purple-color: #D7C3F1;
+  --primary-color: #0d7c66;
+  --secondary-color: #41b3a2;
+  --third-color: #bde8ca;
+  --purple-color: #d7c3f1;
   --text-color: #fff;
-  --app-bg: #EEEEEE;
+  --app-bg: #eeeeee;
+  --white-color: #fbfcfc;
 }
+
 #app {
+  display: flex;
+  flex-direction: column;
   width: 300px;
-  height: 400px;
+  min-height: 400px;
+  max-height: 800px;
   background-color: var(--app-bg);
   .app-header {
     color: var(--text-color);
@@ -22,14 +28,58 @@ html, body {
     background-color: var(--primary-color);
   }
   .setting-item {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
     margin: 5px;
     padding: 5px 1rem;
-    background-color: white;
+    border-radius: 5px;
+    background-color: var(--white-color);
   }
-  .setting-open {
+  .open-methods {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .setting-title {
+    text-align: left;
+    padding-bottom: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .clipboard-editor {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    background-color: var(--white-color);
+    height: 300px;
+    padding-right: 0;
+    flex-basis: 0;
+    flex-shrink: 1;
+    flex-grow: 1;
+    .clipboard-editor-input {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      border: none; /* 去掉边框 */
+      resize: none; /* 禁用拖动改变大小 */
+      outline: none;
+      overflow-y: auto;
+      background-color: var(--white-color);
+      line-height: 1.5; /* 行高 */
+      color: #333;
+      scrollbar-color: #999999 transparent;
+      scrollbar-width: thin;
+      .editor-empty {
+        position: absolute;
+        left: 50%;
+        top: 40%;
+        width: 90%;
+        transform: translate(-50%, -50%);
+        font-size: 0.8rem;
+        color: #999999;
+      }
+    }
   }
 }

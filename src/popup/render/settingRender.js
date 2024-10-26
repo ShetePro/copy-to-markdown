@@ -1,11 +1,12 @@
-import { setChromeStorage, storageKey } from "../utils/chromeStorage.js";
-import settingStore from "./store.js";
+import { setChromeStorage, storageKey } from "../../utils/chromeStorage.js";
+import settingStore from "../store.js";
 
 export function openSettingRender() {
   const [setting, { changeSetting }] = settingStore();
-  console.log(setting);
   const settingItem = createSettingItemDom();
-  const label = document.createElement("span");
+  settingItem.classList.add("open-methods");
+  const label = document.createElement("div");
+  label.classList.add("setting-title");
   label.innerText = "Conversion";
   const checkbox = document.createElement("div");
   checkbox.id = "checklist";
