@@ -1,4 +1,4 @@
-import { debounce } from "../util.js";
+import { debounce } from "../utils/util.js";
 import ButtonStyle from "./button.module.css";
 
 export function createButton({ clickCallback }) {

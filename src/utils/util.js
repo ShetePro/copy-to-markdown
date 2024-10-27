@@ -42,3 +42,19 @@ export function unTexMarkdownEscaping(res) {
       .replace(/\\}/g, "}");
   });
 }
+// 将文本写入剪切板
+export function writeTextClipboard(text) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text);
+  } else {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    textarea.select();
+    textarea.setSelectionRange(0, text.length); // 为移动设备兼容性
+    try {
+      document.execCommand("copy");
+    } catch (err) {}
+  }
+}

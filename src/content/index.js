@@ -2,12 +2,46 @@ import { unified } from "unified";
 import rehypeParse from "rehype-parse";
 import rehypeRemark from "rehype-remark";
 import remarkStringify from "remark-stringify";
-import { hasSelector, unTexMarkdownEscaping } from "../util.js";
+import {
+  hasSelector,
+  unTexMarkdownEscaping,
+  writeTextClipboard,
+} from "../utils/util.js";
 import { PopupCopy } from "./popupCopy.js";
 import "./copyStyle.module.css";
+import {
+  defaultStorage,
+  getChromeStorage,
+  storageKey,
+  watchChromeStorage,
+} from "../utils/chromeStorage.js";
 const position = { x: 0, y: 0 };
 let popupCopy = null;
-document.addEventListener("mouseup", (event) => {
+export let setting = {};
+getChromeStorage().then((res) => {
+  setting = res;
+  initEvent();
+});
+
+watchChromeStorage((changes) => {
+  const { newValue, oldValue } = changes;
+  setting = newValue;
+  if (newValue.selectionPopup !== oldValue.selectionPopup) {
+    newValue.selectionPopup ? createPopup() : popupCopy?.hide();
+  }
+});
+// contentMenu click event
+chrome.runtime.onMessage.addListener((response) => {
+  if (response === "transformToMarkdown") {
+    selectorHandle();
+  }
+});
+
+function initEvent() {
+  document.addEventListener("mouseup", bindPopupEvent);
+}
+
+function bindPopupEvent(event) {
   const { target, x, y } = event;
   // 异步获取选中内容
   setTimeout(() => {
@@ -15,13 +49,14 @@ document.addEventListener("mouseup", (event) => {
       if (target !== popupCopy?.popup) {
         position.x = x;
         position.y = y;
-        createPopup();
+        setting.selectionPopup && createPopup();
       }
     } else {
       popupCopy?.hide();
     }
   });
-});
+}
+
 function createPopup() {
   if (!popupCopy) {
     popupCopy = new PopupCopy({
@@ -33,6 +68,7 @@ function createPopup() {
   popupCopy?.setPosition(position);
   popupCopy?.show();
 }
+
 const texClass = ["base", "katex-html", "katex"];
 function selectorHandle() {
   return new Promise((resolve, reject) => {
@@ -48,10 +84,12 @@ function selectorHandle() {
           .then((res) => {
             // 正则替换 TEX中的\_为_
             const markdownText = unTexMarkdownEscaping(res);
-            navigator.clipboard.writeText(
-              markdownText || selectedText.toString(),
-            );
+            writeTextClipboard(markdownText || selectedText.toString());
             console.log(markdownText || selectedText.toString());
+            chrome.runtime.sendMessage({
+              extensionId: chrome.runtime.id,
+              message: markdownText,
+            });
             resolve(markdownText);
           })
           .catch((e) => {
@@ -80,12 +118,16 @@ function setKatexText(node) {
   for (const katex of katexList) {
     let annotationNode = katex.querySelector("annotation");
     const { focusNode, anchorNode } = getSelection();
-    const lastTextNode = focusNode.nodeType === Node.TEXT_NODE ? focusNode : anchorNode
+    const lastTextNode =
+      focusNode.nodeType === Node.TEXT_NODE ? focusNode : anchorNode;
     // 如果不存在annotation 标签则将用text 节点向上查找 katex节点
     if (!annotationNode) {
-      annotationNode = getParentNodeIsTexNode(lastTextNode)?.querySelector("annotation");
+      annotationNode =
+        getParentNodeIsTexNode(lastTextNode)?.querySelector("annotation");
     }
-    katex.textContent = transformTex(annotationNode?.textContent || lastTextNode.nodeValue || '');
+    katex.textContent = transformTex(
+      annotationNode?.textContent || lastTextNode.nodeValue || "",
+    );
   }
   return node;
 }
