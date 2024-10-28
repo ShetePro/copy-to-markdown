@@ -1,15 +1,32 @@
+import { createAlert } from "../components/alert/alert.js";
+
 let clipMarkdownText = "";
 export function clipboardEditorRender(text) {
   const copyBox = document.createElement("div");
   copyBox.classList.add("setting-item", "clipboard-editor");
   const editor = createEditor();
-  const title = document.createElement("div");
-  title.classList.add("setting-title");
-  title.innerText = "Clipboard";
+  const title = createTitle();
   copyBox.append(title, editor);
   return copyBox;
 }
-
+function createTitle() {
+  const title = document.createElement("div");
+  title.classList.add("setting-title");
+  const span = document.createElement("span");
+  span.innerText = "Clipboard";
+  const button = document.createElement("button");
+  button.classList.add("title-button");
+  button.innerText = "Copied";
+  button.addEventListener("click", () => {
+    console.log('click')
+    const editor = document.querySelector(".clipboard-editor-input");
+    const copyText = editor.textContent;
+    console.log(copyText);
+    createAlert("Copied!");
+  });
+  title.append(span, button);
+  return title;
+}
 export function createEditor() {
   const editor = document.createElement("div");
   editor.classList.add("clipboard-editor-input");
