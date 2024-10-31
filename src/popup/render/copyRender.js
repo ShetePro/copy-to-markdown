@@ -18,11 +18,18 @@ function createTitle() {
   button.classList.add("title-button");
   button.innerText = "Copied";
   button.addEventListener("click", () => {
-    console.log('click')
-    const editor = document.querySelector(".clipboard-editor-input");
-    const copyText = editor.textContent;
-    console.log(copyText);
-    createAlert("Copied!");
+    if (clipMarkdownText) {
+      const editor = document.querySelector(".clipboard-editor-input");
+      const copyText = editor.textContent;
+      navigator.clipboard
+        .writeText(copyText)
+        .then(() => {
+          createAlert("Copied!");
+        })
+        .catch(() => {
+          createAlert("Fail!");
+        });
+    }
   });
   title.append(span, button);
   return title;
@@ -30,6 +37,10 @@ function createTitle() {
 export function createEditor() {
   const editor = document.createElement("div");
   editor.classList.add("clipboard-editor-input");
+  editor.addEventListener("input", (e) => {
+    console.log(e, "change editor");
+    clipMarkdownText = e.target;
+  });
   // first get copy text
   chrome.runtime.sendMessage("getClipboardEditor", (message) => {
     clipMarkdownText = message || "";
