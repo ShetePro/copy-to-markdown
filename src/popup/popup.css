@@ -1,4 +1,5 @@
 @import "checkbox.css";
+@import "components/components.css";
 html,
 body {
   margin: 0;
@@ -40,10 +41,26 @@ body {
     justify-content: space-between;
   }
   .setting-title {
-    text-align: left;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
     padding-bottom: 10px;
     font-size: 1rem;
     font-weight: 700;
+    .title-button {
+      padding: 5px 10px;
+      background-color: var(--secondary-color);
+      border-radius: 12px;
+      border: none;
+      color: var(--white-color);
+      transition-duration: 0.5s;
+    }
+    .title-button:active {
+      transform: scale(0.97);
+      transition-duration: 0.2s;
+    }
   }
 
   .clipboard-editor {
@@ -53,7 +70,7 @@ body {
     justify-content: flex-start;
     background-color: var(--white-color);
     height: 300px;
-    padding-right: 0;
+    padding-right: 10px;
     flex-basis: 0;
     flex-shrink: 1;
     flex-grow: 1;

@@ -1,0 +1,43 @@
+.popup-alert {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.12);
+  position: fixed;
+  margin: 0 auto;
+  left: 50%;
+  top: 40px;
+  background-color: var(--white-color);
+  transform: translateX(-50%);
+  animation: show 0.4s ease forwards;
+  transition: all 0.4s ease;
+}
+.hide-alert {
+  animation: hide 0.4s ease forwards;
+}
+
+@keyframes show {
+  0% {
+    transform: translateX(-50%) scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+}
+@keyframes hide {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    top: -8vh;
+    opacity: 0;
+  }
+}
