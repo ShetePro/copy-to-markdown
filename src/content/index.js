@@ -27,7 +27,7 @@ watchChromeStorage((changes) => {
   const { newValue, oldValue } = changes;
   setting = newValue;
   if (newValue.selectionPopup !== oldValue.selectionPopup) {
-    newValue.selectionPopup ? createPopup() : popupCopy?.hide();
+    newValue.selectionPopup ? togglePopup() : popupCopy?.hide();
   }
 });
 // contentMenu click event
@@ -45,18 +45,22 @@ function bindPopupEvent(event) {
   const { target, x, y } = event;
   // 异步获取选中内容
   setTimeout(() => {
-    if (hasSelector()) {
-      if (target !== popupCopy?.popup) {
-        position.x = x;
-        position.y = y;
-        setting.selectionPopup && createPopup();
-      }
-    } else {
-      popupCopy?.hide();
+    if (target !== popupCopy?.popup) {
+      position.x = x;
+      position.y = y;
+      if (!setting.selectionPopup) return;
+      togglePopup();
     }
   });
 }
 
+function togglePopup() {
+  if (hasSelector()) {
+    createPopup();
+  } else {
+    popupCopy?.hide();
+  }
+}
 function createPopup() {
   if (!popupCopy) {
     popupCopy = new PopupCopy({
