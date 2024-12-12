@@ -74,20 +74,25 @@ body {
     flex-basis: 0;
     flex-shrink: 1;
     flex-grow: 1;
-    .clipboard-editor-input {
+    .box {
       position: relative;
       width: 100%;
       height: 100%;
       padding: 0;
-      border: none; /* 去掉边框 */
-      resize: none; /* 禁用拖动改变大小 */
-      outline: none;
-      overflow-y: auto;
-      background-color: var(--white-color);
-      line-height: 1.5; /* 行高 */
-      color: #333;
-      scrollbar-color: #999999 transparent;
-      scrollbar-width: thin;
+      .clipboard-editor-input {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        border: none; /* 去掉边框 */
+        resize: none; /* 禁用拖动改变大小 */
+        outline: none;
+        background-color: var(--white-color);
+        line-height: 1.5; /* 行高 */
+        color: #333;
+        scrollbar-color: #999999 transparent;
+        scrollbar-width: thin;
+      }
       .editor-empty {
         position: absolute;
         left: 50%;

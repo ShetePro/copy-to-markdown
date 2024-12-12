@@ -3,6 +3,7 @@ import rehypeParse from "rehype-parse";
 import rehypeRemark from "rehype-remark";
 import remarkStringify from "remark-stringify";
 import {
+  findFirstTextNode,
   hasSelector,
   unTexMarkdownEscaping,
   writeTextClipboard,
@@ -10,9 +11,7 @@ import {
 import { PopupCopy } from "./popupCopy.js";
 import "./copyStyle.module.css";
 import {
-  defaultStorage,
   getChromeStorage,
-  storageKey,
   watchChromeStorage,
 } from "../utils/chromeStorage.js";
 const position = { x: 0, y: 0 };
@@ -27,7 +26,7 @@ watchChromeStorage((changes) => {
   const { newValue, oldValue } = changes;
   setting = newValue;
   if (newValue.selectionPopup !== oldValue.selectionPopup) {
-    newValue.selectionPopup ? createPopup() : popupCopy?.hide();
+    newValue.selectionPopup ? togglePopup() : popupCopy?.hide();
   }
 });
 // contentMenu click event
@@ -45,18 +44,22 @@ function bindPopupEvent(event) {
   const { target, x, y } = event;
   // 异步获取选中内容
   setTimeout(() => {
-    if (hasSelector()) {
-      if (target !== popupCopy?.popup) {
-        position.x = x;
-        position.y = y;
-        setting.selectionPopup && createPopup();
-      }
-    } else {
-      popupCopy?.hide();
+    if (target !== popupCopy?.popup) {
+      position.x = x;
+      position.y = y;
+      if (!setting.selectionPopup) return;
+      togglePopup();
     }
   });
 }
 
+function togglePopup() {
+  if (hasSelector()) {
+    createPopup();
+  } else {
+    popupCopy?.hide();
+  }
+}
 function createPopup() {
   if (!popupCopy) {
     popupCopy = new PopupCopy({
@@ -85,7 +88,6 @@ function selectorHandle() {
             // 正则替换 TEX中的\_为_
             const markdownText = unTexMarkdownEscaping(res);
             writeTextClipboard(markdownText || selectedText.toString());
-            console.log(markdownText || selectedText.toString());
             chrome.runtime.sendMessage({
               extensionId: chrome.runtime.id,
               message: markdownText,
@@ -93,10 +95,12 @@ function selectorHandle() {
             resolve(markdownText);
           })
           .catch((e) => {
+            console.log(e);
             reject(e);
           });
       }
     } catch (e) {
+      console.log(e);
       reject(e);
     }
   });
@@ -104,11 +108,42 @@ function selectorHandle() {
 function transformRange(range) {
   const { commonAncestorContainer } = range;
   const isTexNode = hasTexNode(commonAncestorContainer);
-  const dom = isTexNode
+  let dom = isTexNode
     ? getParentNodeIsTexNode(commonAncestorContainer)
     : range.cloneContents();
-  return setKatexText(dom);
+  dom = setKatexText(dom);
+  dom = setCodeText(dom);
+  return dom;
 }
+
+function setCodeBlockLanguage(dom) {
+  let codes = dom.querySelectorAll("code-block");
+  for (const code of codes) {
+    const langNode = findFirstTextNode(code);
+    let lang = langNode?.textContent.toLocaleLowerCase().replace(/['"]/g, "");
+    langNode.textContent = "";
+    const codeDom = code.querySelector("code");
+    codeDom.classList.add(`language-${lang}`);
+  }
+}
+// 优化code 代码
+function setCodeText(dom) {
+  // 根据pre下的第一个textNode 来判断code 语言
+  setCodeBlockLanguage(dom);
+  const pres = dom.querySelectorAll("pre");
+  for (const pre of pres) {
+    const code = pre.querySelector("code");
+    code.remove();
+    let lang = findFirstTextNode(pre)
+      ?.textContent.toLocaleLowerCase()
+      .replace(/['"]/g, "");
+    pre.innerHTML = "";
+    lang && code.classList.add(`language-${lang}`);
+    pre.appendChild(code);
+  }
+  return dom;
+}
+
 // 设置Tex Node 转为 markdown 格式
 function setKatexText(node) {
   if (node.className === "katex") {
@@ -156,7 +191,14 @@ async function astHtmlToMarkdown(node) {
   const html = container.innerHTML;
   const html2Markdown = await unified()
     .use(rehypeParse)
-    .use(rehypeRemark)
+    .use(rehypeRemark, {
+      nodeHandlers: {
+        // 去除注释节点
+        comment(state, node, parent) {
+          return null;
+        },
+      },
+    })
     .use(remarkStringify)
     .process(html);
   return html2Markdown.value;
