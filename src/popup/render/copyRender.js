@@ -20,7 +20,8 @@ function createTitle() {
   button.addEventListener("click", () => {
     if (clipMarkdownText) {
       const editor = document.querySelector(".clipboard-editor-input");
-      const copyText = editor.textContent;
+      const copyText = editor.value;
+      console.log(copyText)
       navigator.clipboard
         .writeText(copyText)
         .then(() => {
@@ -35,32 +36,35 @@ function createTitle() {
   return title;
 }
 export function createEditor() {
-  const editor = document.createElement("div");
+  const main = document.createElement("div");
+  const editor = document.createElement("textarea");
+  main.classList.add("box");
   editor.classList.add("clipboard-editor-input");
   editor.addEventListener("input", (e) => {
-    console.log(e, "change editor");
     clipMarkdownText = e.target;
   });
   // first get copy text
   chrome.runtime.sendMessage("getClipboardEditor", (message) => {
     clipMarkdownText = message || "";
-    changeEditorState(editor);
+    changeEditorState(main, editor)
   });
   // change message
   chrome.runtime.onMessage.addListener((request) => {
     clipMarkdownText = request || "";
-    changeEditorState(editor);
+    changeEditorState(main, editor)
   });
-  changeEditorState(editor);
-  return editor;
+  changeEditorState(main, editor)
+  main.appendChild(editor);
+  return main;
 }
 
-function changeEditorState(editor) {
+function changeEditorState(main, editor) {
   if (clipMarkdownText) {
-    editor.setAttribute("contenteditable", "true");
-    editor.innerText = clipMarkdownText;
+    editor.remove()
+    editor.value = clipMarkdownText;
+    main.append(editor)
   } else {
-    editor.innerHTML = getEditorEmpty();
+    main.innerHTML = getEditorEmpty()
   }
 }
 
