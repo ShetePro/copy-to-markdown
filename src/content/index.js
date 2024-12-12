@@ -11,9 +11,7 @@ import {
 import { PopupCopy } from "./popupCopy.js";
 import "./copyStyle.module.css";
 import {
-  defaultStorage,
   getChromeStorage,
-  storageKey,
   watchChromeStorage,
 } from "../utils/chromeStorage.js";
 const position = { x: 0, y: 0 };
@@ -118,17 +116,30 @@ function transformRange(range) {
   return dom;
 }
 
+function setCodeBlockLanguage(dom) {
+  let codes = dom.querySelectorAll("code-block");
+  for (const code of codes) {
+    const langNode = findFirstTextNode(code);
+    let lang = langNode?.textContent.toLocaleLowerCase().replace(/['"]/g, "");
+    langNode.textContent = "";
+    const codeDom = code.querySelector("code");
+    codeDom.classList.add(`language-${lang}`);
+  }
+}
 // 优化code 代码
 function setCodeText(dom) {
   // 根据pre下的第一个textNode 来判断code 语言
+  setCodeBlockLanguage(dom);
   const pres = dom.querySelectorAll("pre");
   for (const pre of pres) {
     const code = pre.querySelector("code");
-    let langNode = findFirstTextNode(pre);
     code.remove();
+    let lang = findFirstTextNode(pre)
+      ?.textContent.toLocaleLowerCase()
+      .replace(/['"]/g, "");
     pre.innerHTML = "";
+    lang && code.classList.add(`language-${lang}`);
     pre.appendChild(code);
-    pre.classList.add(langNode);
   }
   return dom;
 }
@@ -181,10 +192,12 @@ async function astHtmlToMarkdown(node) {
   const html2Markdown = await unified()
     .use(rehypeParse)
     .use(rehypeRemark, {
-      // handlers: {
-      //   pre(state, node, parent) {
-      //   },
-      // },
+      nodeHandlers: {
+        // 去除注释节点
+        comment(state, node, parent) {
+          return null;
+        },
+      },
     })
     .use(remarkStringify)
     .process(html);

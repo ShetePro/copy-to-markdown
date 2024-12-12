@@ -65,6 +65,9 @@ export function findFirstTextNode(element) {
     if (node.nodeType === Node.TEXT_NODE) {
       return node;
     }
+    if (node.childNodes && node.childNodes.length) {
+      return findFirstTextNode(node)
+    }
     node = node.nextSibling;
   }
   return null; // 没有找到文本节点
