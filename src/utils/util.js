@@ -58,3 +58,14 @@ export function writeTextClipboard(text) {
     } catch (err) {}
   }
 }
+
+export function findFirstTextNode(element) {
+  let node = element.firstChild;
+  while (node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return node;
+    }
+    node = node.nextSibling;
+  }
+  return null; // 没有找到文本节点
+}

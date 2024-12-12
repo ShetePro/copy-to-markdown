@@ -3,6 +3,7 @@ import rehypeParse from "rehype-parse";
 import rehypeRemark from "rehype-remark";
 import remarkStringify from "remark-stringify";
 import {
+  findFirstTextNode,
   hasSelector,
   unTexMarkdownEscaping,
   writeTextClipboard,
@@ -89,7 +90,6 @@ function selectorHandle() {
             // 正则替换 TEX中的\_为_
             const markdownText = unTexMarkdownEscaping(res);
             writeTextClipboard(markdownText || selectedText.toString());
-            console.log(markdownText || selectedText.toString());
             chrome.runtime.sendMessage({
               extensionId: chrome.runtime.id,
               message: markdownText,
@@ -97,10 +97,12 @@ function selectorHandle() {
             resolve(markdownText);
           })
           .catch((e) => {
+            console.log(e);
             reject(e);
           });
       }
     } catch (e) {
+      console.log(e);
       reject(e);
     }
   });
@@ -108,11 +110,29 @@ function selectorHandle() {
 function transformRange(range) {
   const { commonAncestorContainer } = range;
   const isTexNode = hasTexNode(commonAncestorContainer);
-  const dom = isTexNode
+  let dom = isTexNode
     ? getParentNodeIsTexNode(commonAncestorContainer)
     : range.cloneContents();
-  return setKatexText(dom);
+  dom = setKatexText(dom);
+  dom = setCodeText(dom);
+  return dom;
 }
+
+// 优化code 代码
+function setCodeText(dom) {
+  // 根据pre下的第一个textNode 来判断code 语言
+  const pres = dom.querySelectorAll("pre");
+  for (const pre of pres) {
+    const code = pre.querySelector("code");
+    let langNode = findFirstTextNode(pre);
+    code.remove();
+    pre.innerHTML = "";
+    pre.appendChild(code);
+    pre.classList.add(langNode);
+  }
+  return dom;
+}
+
 // 设置Tex Node 转为 markdown 格式
 function setKatexText(node) {
   if (node.className === "katex") {
@@ -160,7 +180,12 @@ async function astHtmlToMarkdown(node) {
   const html = container.innerHTML;
   const html2Markdown = await unified()
     .use(rehypeParse)
-    .use(rehypeRemark)
+    .use(rehypeRemark, {
+      // handlers: {
+      //   pre(state, node, parent) {
+      //   },
+      // },
+    })
     .use(remarkStringify)
     .process(html);
   return html2Markdown.value;
