@@ -133,13 +133,15 @@ function setCodeText(dom) {
   const pres = dom.querySelectorAll("pre");
   for (const pre of pres) {
     const code = pre.querySelector("code");
-    code.remove();
-    let lang = findFirstTextNode(pre)
-      ?.textContent.toLocaleLowerCase()
-      .replace(/['"]/g, "");
-    pre.innerHTML = "";
-    lang && code.classList.add(`language-${lang}`);
-    pre.appendChild(code);
+    if (code) {
+      code?.remove();
+      let lang = findFirstTextNode(pre)
+        ?.textContent.toLocaleLowerCase()
+        .replace(/['"]/g, "");
+      lang && code?.classList.add(`language-${lang}`);
+      pre.innerHTML = "";
+      pre.appendChild(code);
+    }
   }
   return dom;
 }
