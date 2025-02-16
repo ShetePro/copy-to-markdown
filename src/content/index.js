@@ -2,6 +2,7 @@ import { unified } from "unified";
 import rehypeParse from "rehype-parse";
 import rehypeRemark from "rehype-remark";
 import remarkStringify from "remark-stringify";
+import remarkGfm from 'remark-gfm';
 import {
   findFirstTextNode,
   hasSelector,
@@ -201,6 +202,7 @@ async function astHtmlToMarkdown(node) {
         },
       },
     })
+    .use(remarkGfm)
     .use(remarkStringify)
     .process(html);
   return html2Markdown.value;
