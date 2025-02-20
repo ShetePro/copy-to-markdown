@@ -2,6 +2,7 @@ import { unified } from "unified";
 import rehypeParse from "rehype-parse";
 import rehypeRemark from "rehype-remark";
 import remarkStringify from "remark-stringify";
+import remarkGfm from "remark-gfm";
 import {
   findFirstTextNode,
   hasSelector,
@@ -112,12 +113,16 @@ function transformRange(range) {
     ? getParentNodeIsTexNode(commonAncestorContainer)
     : range.cloneContents();
   dom = setKatexText(dom);
-  dom = setCodeText(dom);
+  // 如果是code节点则设置code 语言
+  if (typeof dom.querySelector === "function") {
+    dom = setCodeText(dom);
+  }
   return dom;
 }
 
+// gemini 代码块语言设置
 function setCodeBlockLanguage(dom) {
-  let codes = dom.querySelectorAll("code-block");
+  let codes = dom?.querySelectorAll?.("code-block");
   for (const code of codes) {
     const langNode = findFirstTextNode(code);
     let lang = langNode?.textContent.toLocaleLowerCase().replace(/['"]/g, "");
@@ -201,6 +206,7 @@ async function astHtmlToMarkdown(node) {
         },
       },
     })
+    .use(remarkGfm)
     .use(remarkStringify)
     .process(html);
   return html2Markdown.value;
