@@ -111,13 +111,27 @@ function transformRange(range) {
   const isTexNode = hasTexNode(commonAncestorContainer);
   let dom = isTexNode
     ? getParentNodeIsTexNode(commonAncestorContainer)
-    : range.cloneContents();
+    : cloneRangeDom(range);
+
   dom = setKatexText(dom);
   // 如果是code节点则设置code 语言
   if (typeof dom.querySelector === "function") {
     dom = setCodeText(dom);
   }
   return dom;
+}
+
+function cloneRangeDom(range) {
+  const clonedContent = range.cloneContents();
+  const cloneTex = clonedContent.querySelectorAll(".katex");
+  const selectTex = range.commonAncestorContainer.querySelectorAll(".katex");
+  for (const index in Array.from(cloneTex)) {
+    // 将计算样式应用到克隆的元素
+    const prop = "display";
+    const computedStyle = window.getComputedStyle(selectTex[index]);
+    cloneTex[index].style[prop] = computedStyle.getPropertyValue(prop);
+  }
+  return clonedContent;
 }
 
 // gemini 代码块语言设置
@@ -154,8 +168,12 @@ function setCodeText(dom) {
 // 设置Tex Node 转为 markdown 格式
 function setKatexText(node) {
   if (node.className === "katex") {
-    return transformTex(node.querySelector("annotation").textContent);
+    return transformTex(
+      node.querySelector("annotation").textContent,
+      hasBlock(node),
+    );
   }
+  // 处理多个Tex
   const katexList = node.querySelectorAll(".katex");
   for (const katex of katexList) {
     let annotationNode = katex.querySelector("annotation");
@@ -169,9 +187,16 @@ function setKatexText(node) {
     }
     katex.textContent = transformTex(
       annotationNode?.textContent || lastTextNode.nodeValue || "",
+      hasBlock(katex),
     );
   }
   return node;
+}
+
+function hasBlock(node) {
+  return (
+    getComputedStyle(node).display === "block" || node.style.display === "block"
+  );
 }
 // 判断是否是tex 节点
 function hasTexNode(node) {
@@ -189,8 +214,8 @@ function getParentNodeIsTexNode(node, max = 10) {
   return null;
 }
 
-function transformTex(text) {
-  return `$${text}$`;
+function transformTex(text, isBlock = false) {
+  return isBlock ? `$$${text}$$` : `$${text}$`;
 }
 async function astHtmlToMarkdown(node) {
   const container = document.createElement("div");
