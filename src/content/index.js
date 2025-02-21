@@ -15,6 +15,7 @@ import {
   getChromeStorage,
   watchChromeStorage,
 } from "../utils/chromeStorage.js";
+import { getRangeTexClone } from "../utils/tex.js";
 const position = { x: 0, y: 0 };
 let popupCopy = null;
 export let setting = {};
@@ -108,11 +109,12 @@ function selectorHandle() {
 }
 function transformRange(range) {
   const { commonAncestorContainer } = range;
+  if (commonAncestorContainer.nodeType === Node.TEXT_NODE)
+    return range.cloneContents();
   const isTexNode = hasTexNode(commonAncestorContainer);
   let dom = isTexNode
     ? getParentNodeIsTexNode(commonAncestorContainer)
     : cloneRangeDom(range);
-
   dom = setKatexText(dom);
   // 如果是code节点则设置code 语言
   if (typeof dom.querySelector === "function") {
@@ -121,17 +123,10 @@ function transformRange(range) {
   return dom;
 }
 
+// clone range中的选中内容
 function cloneRangeDom(range) {
-  const clonedContent = range.cloneContents();
-  const cloneTex = clonedContent.querySelectorAll(".katex");
-  const selectTex = range.commonAncestorContainer.querySelectorAll(".katex");
-  for (const index in Array.from(cloneTex)) {
-    // 将计算样式应用到克隆的元素
-    const prop = "display";
-    const computedStyle = window.getComputedStyle(selectTex[index]);
-    cloneTex[index].style[prop] = computedStyle.getPropertyValue(prop);
-  }
-  return clonedContent;
+  // 针对处理tex 样式
+  return getRangeTexClone(range);
 }
 
 // gemini 代码块语言设置
