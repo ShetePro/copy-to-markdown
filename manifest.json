@@ -1,7 +1,7 @@
 {
   "name": "Copy To Markdown",
   "description": "Convert copied content to markdown format",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "manifest_version": 3,
   "icons": {
     "32": "public/markdown_32.png",
