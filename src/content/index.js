@@ -212,6 +212,17 @@ function getParentNodeIsTexNode(node, max = 10) {
 function transformTex(text, isBlock = false) {
   return isBlock ? `$$${text}$$` : `$${text}$`;
 }
+
+function fixMathDollarSpacing(input) {
+  // 匹配 $xxx$，捕获左侧一位（也可能啥都没有）
+  // (?<! ) 匹配非空格（零宽断言，排除已经是空格的）
+  // 支持开头等情况，(?:^|[^ \n\r\t])(\$[^$]+?\$)
+  return input.replace(/(^|\S)(\$[^$]+?\$)/g, (_match, p1, p2) => {
+    // 如果p1是开头，则只返回p2；否则前面加空格
+    return (p1 === '' ? '' : p1 + ' ') + p2;
+  });
+}
+
 async function astHtmlToMarkdown(node) {
   const container = document.createElement("div");
   container.append(node);
@@ -229,5 +240,5 @@ async function astHtmlToMarkdown(node) {
     .use(remarkGfm)
     .use(remarkStringify)
     .process(html);
-  return html2Markdown.value;
+  return fixMathDollarSpacing(html2Markdown.value);
 }
