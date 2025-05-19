@@ -214,12 +214,14 @@ function transformTex(text, isBlock = false) {
 }
 
 function fixMathDollarSpacing(input) {
-  // 匹配 $xxx$，捕获左侧一位（也可能啥都没有）
-  // (?<! ) 匹配非空格（零宽断言，排除已经是空格的）
-  // 支持开头等情况，(?:^|[^ \n\r\t])(\$[^$]+?\$)
-  return input.replace(/(^|\S)(\$[^$]+?\$)/g, (_match, p1, p2) => {
-    // 如果p1是开头，则只返回p2；否则前面加空格
-    return (p1 === '' ? '' : p1 + ' ') + p2;
+  // 1. 逐一匹配所有 $公式$ 块
+  return input.replace(/(\S)?(\$[^$]+?\$)/g, (match, p1, p2) => {
+    // 只有 p1 存在且不是空白时在 $ 前加一个空格
+    if (p1 && !/\s/.test(p1)) {
+      return p1 + ' ' + p2;
+    }
+    // 否则直接返回原样（包括行首、或者p1为空、空格、\n等）
+    return (p1 || '') + p2;
   });
 }
 
