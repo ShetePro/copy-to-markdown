@@ -6,7 +6,6 @@ import remarkGfm from "remark-gfm";
 import {
   findFirstTextNode,
   hasSelector,
-  unTexMarkdownEscaping,
   writeTextClipboard,
 } from "../utils/util.js";
 import { PopupCopy } from "./popupCopy.js";
@@ -15,9 +14,15 @@ import {
   getChromeStorage,
   watchChromeStorage,
 } from "../utils/chromeStorage.js";
-import { getRangeTexClone } from "../utils/tex.js";
+import {
+  unTexMarkdownEscaping,
+  fixMathDollarSpacing,
+  getParentNodeIsTexNode,
+  getRangeTexClone,
+  hasTexNode, setKatexText,
+} from "../utils/tex.js";
 const position = { x: 0, y: 0 };
-let popupCopy = null;
+export let popupCopy = null;
 export let setting = {};
 getChromeStorage().then((res) => {
   setting = res;
@@ -32,7 +37,7 @@ watchChromeStorage((changes) => {
   }
 });
 // contentMenu click event
-chrome.runtime.onMessage.addListener((response) => {
+chrome?.runtime.onMessage.addListener((response) => {
   if (response === "transformToMarkdown") {
     selectorHandle();
   }
@@ -214,61 +219,13 @@ function transformTex(text, isBlock = false) {
 }
 
 function fixMathDollarSpacing(input) {
-  // 匹配单个$（前后不是$，也不是$$），只处理$xxx$，忽略$$xxx$$
-  return input.replace(
-      /(\S)?((?<!\$)\$[^$\n]+\$(?!\$))/g, // 只处理$...$，忽略$$...$$
-      (match, p1, p2) => {
-        if (p1 && !/\s/.test(p1)) {
-          return p1 + ' ' + p2;
-        }
-        return (p1 || '') + p2;
-      }
-  );
-}
-
-function fixTexDoubleEscapeInMarkdown(markdown) {
-  // 块级公式
-  markdown = markdown.replace(/\$\$([\s\S]*?)\$\$/g, (block, tex) => {
-    // 只还原 remark escape 的那批符号 (包括逗号「只用于 \,」)，保留其他所有 latex 命令
-    tex = tex
-        // remark-stringify会把 \, escape 成 \\,
-        .replace(/\\\\,/g, '\\,')
-        // remark-stringify会把下列符号前加单/双斜杠
-        .replace(/\\\\([_{}[$])/g, '$1')
-        .replace(/\\([_{}$])/g, '$1')
-        // 专门处理方括号的转义
-        .replace(/\\([[$])/g, '$1');
-    return `$$${tex}$$`;
+  // 匹配 $xxx$，捕获左侧一位（也可能啥都没有）
+  // (?<! ) 匹配非空格（零宽断言，排除已经是空格的）
+  // 支持开头等情况，(?:^|[^ \n\r\t])(\$[^$]+?\$)
+  return input.replace(/(^|\S)(\$[^$]+?\$)/g, (_match, p1, p2) => {
+    // 如果p1是开头，则只返回p2；否则前面加空格
+    return (p1 === '' ? '' : p1 + ' ') + p2;
   });
-
-  // 非块级，分段处理
-  let segments = [];
-  let lastIndex = 0;
-  markdown.replace(/\$\$([\s\S]*?)\$\$/g, (match, _tex, offset) => {
-    if (lastIndex < offset)
-      segments.push({ type: 'text', text: markdown.slice(lastIndex, offset) });
-    segments.push({ type: 'block', text: match });
-    lastIndex = offset + match.length;
-  });
-
-  if (lastIndex < markdown.length)
-    segments.push({ type: 'text', text: markdown.slice(lastIndex) });
-
-  segments = segments.map(seg => {
-    if (seg.type === 'text') {
-      return seg.text.replace(/(?<!\$)\$([^\n$]+?)\$(?!\$)/g, (_all, tex) => {
-        tex = tex
-            .replace(/\\\\,/g, '\\,')
-            .replace(/\\\\([_{}[\]$])/g, '$1')
-            .replace(/\\([_{}$])/g, '$1')
-            // 同样在行内公式中也需要处理方括号
-            .replace(/\\([$])/g, '$1');
-        return `$${tex}$`;
-      });
-    }
-    return seg.text;
-  });
-  return segments.join('');
 }
 
 async function astHtmlToMarkdown(node) {
@@ -288,5 +245,5 @@ async function astHtmlToMarkdown(node) {
     .use(remarkGfm)
     .use(remarkStringify)
     .process(html);
-  return fixTexDoubleEscapeInMarkdown(fixMathDollarSpacing(html2Markdown.value));
+  return fixMathDollarSpacing(html2Markdown.value);
 }

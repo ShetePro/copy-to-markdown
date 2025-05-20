@@ -30,18 +30,21 @@ export function getTextNodeRect(node) {
   return range?.getBoundingClientRect();
 }
 
-// 取消TEX中的markdown 转义
-export function unTexMarkdownEscaping(res) {
-  return res.replace(/\$(.*?)\$/g, (match) => {
-    // _ [] {} 进行反转义
-    return match
-      .replace(/\\_/g, "_")
-      .replace(/\\\[/g, "[")
-      .replace(/\\]/g, "]")
-      .replace(/\\\{/g, "{")
-      .replace(/\\}/g, "}");
-  });
+// 获取第一个文本节点
+export function findFirstTextNode(element) {
+  let node = element.firstChild;
+  while (node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return node;
+    }
+    if (node.childNodes && node.childNodes.length) {
+      return findFirstTextNode(node)
+    }
+    node = node.nextSibling;
+  }
+  return null; // 没有找到文本节点
 }
+
 // 将文本写入剪切板
 export function writeTextClipboard(text) {
   if (navigator.clipboard) {
@@ -59,16 +62,10 @@ export function writeTextClipboard(text) {
   }
 }
 
-export function findFirstTextNode(element) {
-  let node = element.firstChild;
-  while (node) {
-    if (node.nodeType === Node.TEXT_NODE) {
-      return node;
-    }
-    if (node.childNodes && node.childNodes.length) {
-      return findFirstTextNode(node)
-    }
-    node = node.nextSibling;
-  }
-  return null; // 没有找到文本节点
+
+
+export function hasBlock(node) {
+  return (
+    getComputedStyle(node).display === "block" || node.style.display === "block"
+  );
 }

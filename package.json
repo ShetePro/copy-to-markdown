@@ -1,20 +1,23 @@
 {
   "name": "copy-to-markdown",
-  "version": "1.2.8",
+  "version": "1.2.10",
   "description": "",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest"
   },
   "private": true,
   "devDependencies": {
     "@crxjs/vite-plugin": "2.0.0-beta.26",
+    "jsdom": "^26.1.0",
     "postcss": "^8.4.47",
     "postcss-modules": "^6.0.0",
     "prettier": "^3.3.3",
-    "vite": "^5.4.8"
+    "vite": "^5.4.8",
+    "vitest": "^3.1.4"
   },
   "dependencies": {
     "rehype-katex": "^7.0.1",

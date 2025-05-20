@@ -86,6 +86,8 @@ To contribute or make adjustments:
 
 This project is licensed under the MIT License .
 
+
 ## 📧 Support
 
 If you encounter any issues, feel free to [open an issue](https://github.com/ShetePro/copy-to-markdown/issues) or contact us.
+

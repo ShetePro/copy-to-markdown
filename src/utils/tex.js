@@ -1,3 +1,8 @@
+import {hasBlock} from "./util.js";
+
+export const texClass = ["base", "katex-html", "katex"];
+
+// 获取选中的tex节点
 export function getRangeTexClone(range) {
   const { commonAncestorContainer } = range;
   const clonedContent = range.cloneContents();
@@ -35,3 +40,78 @@ export function getRangeTexClone(range) {
   }
   return clonedContent;
 }
+
+// 获取tex 根节点
+export function getParentNodeIsTexNode(node, max = 10) {
+  for (let i = max; i >= 0; i--) {
+    if (!node) return null
+    if (node.className === "katex") {
+      return node;
+    } else {
+      node = node.parentNode;
+    }
+  }
+  return null;
+}
+
+// 转换tex 数学公式换行
+export function transformTex(text, isBlock = false) {
+  return isBlock ? `$$${text}$$` : `$${text}$`;
+}
+
+export function fixMathDollarSpacing(input) {
+  // 匹配 $xxx$，捕获左侧一位（也可能啥都没有）
+  // (?<! ) 匹配非空格（零宽断言，排除已经是空格的）
+  // 支持开头等情况，(?:^|[^ \n\r\t])(\$[^$]+?\$)
+  return input.replace(/(^|\S)(\$[^$]+?\$)/g, (_match, p1, p2) => {
+    // 如果p1是开头，则只返回p2；否则前面加空格
+    return (p1 === '' ? '' : p1 + ' ') + p2;
+  });
+}
+
+// 判断是否是tex 节点
+export function hasTexNode(node) {
+  return texClass.some((item) => node.className === item);
+}
+
+// 设置Tex Node 转为 markdown 格式
+export function setKatexText(node) {
+  if (node.className === "katex") {
+    return transformTex(
+      node.querySelector("annotation").textContent,
+      hasBlock(node),
+    );
+  }
+  // 处理多个Tex
+  const katexList = node.querySelectorAll(".katex");
+  for (const katex of katexList) {
+    let annotationNode = katex.querySelector("annotation");
+    const { focusNode, anchorNode } = getSelection();
+    const lastTextNode =
+      focusNode.nodeType === Node.TEXT_NODE ? focusNode : anchorNode;
+    // 如果不存在annotation 标签则将用text 节点向上查找 katex节点
+    if (!annotationNode) {
+      annotationNode =
+        getParentNodeIsTexNode(lastTextNode)?.querySelector("annotation");
+    }
+    katex.textContent = transformTex(
+      annotationNode?.textContent || lastTextNode.nodeValue || "",
+      hasBlock(katex),
+    );
+  }
+  return node;
+}
+
+// 取消TEX中的markdown 转义
+export function unTexMarkdownEscaping(res) {
+  return res.replace(/\$(.*?)\$/g, (match) => {
+    // _ [] {} 进行反转义
+    return match
+      .replace(/\\_/g, "_")
+      .replace(/\\\[/g, "[")
+      .replace(/\\]/g, "]")
+      .replace(/\\\{/g, "{")
+      .replace(/\\}/g, "}");
+  });
+}
+
