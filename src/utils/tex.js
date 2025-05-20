@@ -60,13 +60,61 @@ export function transformTex(text, isBlock = false) {
 }
 
 export function fixMathDollarSpacing(input) {
-  // 匹配 $xxx$，捕获左侧一位（也可能啥都没有）
-  // (?<! ) 匹配非空格（零宽断言，排除已经是空格的）
-  // 支持开头等情况，(?:^|[^ \n\r\t])(\$[^$]+?\$)
-  return input.replace(/(^|\S)(\$[^$]+?\$)/g, (_match, p1, p2) => {
-    // 如果p1是开头，则只返回p2；否则前面加空格
-    return (p1 === '' ? '' : p1 + ' ') + p2;
+  // 匹配单个$（前后不是$，也不是$$），只处理$xxx$，忽略$$xxx$$
+  return input.replace(
+    /(\S)?((?<!\$)\$[^$\n]+\$(?!\$))/g, // 只处理$...$，忽略$$...$$
+    (match, p1, p2) => {
+      if (p1 && !/\s/.test(p1)) {
+        return p1 + ' ' + p2;
+      }
+      return (p1 || '') + p2;
+    }
+  );
+}
+
+export function fixTexDoubleEscapeInMarkdown(markdown) {
+  // 块级公式
+  markdown = markdown.replace(/\$\$([\s\S]*?)\$\$/g, (block, tex) => {
+    // 只还原 remark escape 的那批符号 (包括逗号「只用于 \,」)，保留其他所有 latex 命令
+    tex = tex
+      // remark-stringify会把 \, escape 成 \\,
+      .replace(/\\\\,/g, '\\,')
+      // remark-stringify会把下列符号前加单/双斜杠
+      .replace(/\\\\([_{}[$])/g, '$1')
+      .replace(/\\([_{}$])/g, '$1')
+      // 专门处理方括号的转义
+      .replace(/\\([[$])/g, '$1');
+    return `$$${tex}$$`;
   });
+  
+  // 非块级，分段处理
+  let segments = [];
+  let lastIndex = 0;
+  markdown.replace(/\$\$([\s\S]*?)\$\$/g, (match, _tex, offset) => {
+    if (lastIndex < offset)
+      segments.push({ type: 'text', text: markdown.slice(lastIndex, offset) });
+    segments.push({ type: 'block', text: match });
+    lastIndex = offset + match.length;
+  });
+  
+  if (lastIndex < markdown.length)
+    segments.push({ type: 'text', text: markdown.slice(lastIndex) });
+  
+  segments = segments.map(seg => {
+    if (seg.type === 'text') {
+      return seg.text.replace(/(?<!\$)\$([^\n$]+?)\$(?!\$)/g, (_all, tex) => {
+        tex = tex
+          .replace(/\\\\,/g, '\\,')
+          .replace(/\\\\([_{}[\]$])/g, '$1')
+          .replace(/\\([_{}$])/g, '$1')
+          // 同样在行内公式中也需要处理方括号
+          .replace(/\\([$])/g, '$1');
+        return `$${tex}$`;
+      });
+    }
+    return seg.text;
+  });
+  return segments.join('');
 }
 
 // 判断是否是tex 节点
@@ -84,15 +132,14 @@ export function setKatexText(node) {
   }
   // 处理多个Tex
   const katexList = node.querySelectorAll(".katex");
+  const { focusNode, anchorNode } = getSelection();
+  const lastTextNode =
+    focusNode.nodeType === Node.TEXT_NODE ? focusNode : anchorNode;
   for (const katex of katexList) {
-    let annotationNode = katex.querySelector("annotation");
-    const { focusNode, anchorNode } = getSelection();
-    const lastTextNode =
-      focusNode.nodeType === Node.TEXT_NODE ? focusNode : anchorNode;
-    // 如果不存在annotation 标签则将用text 节点向上查找 katex节点
+    let annotationNode = katex.querySelector("annotation") || getParentNodeIsTexNode(lastTextNode)?.querySelector("annotation");
+    // 如果不存在annotation 标签则直接返回dom
     if (!annotationNode) {
-      annotationNode =
-        getParentNodeIsTexNode(lastTextNode)?.querySelector("annotation");
+      return node
     }
     katex.textContent = transformTex(
       annotationNode?.textContent || lastTextNode.nodeValue || "",

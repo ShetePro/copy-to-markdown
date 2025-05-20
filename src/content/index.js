@@ -19,7 +19,7 @@ import {
   fixMathDollarSpacing,
   getParentNodeIsTexNode,
   getRangeTexClone,
-  hasTexNode, setKatexText,
+  hasTexNode, setKatexText, fixTexDoubleEscapeInMarkdown,
 } from "../utils/tex.js";
 const position = { x: 0, y: 0 };
 export let popupCopy = null;
@@ -47,7 +47,7 @@ function initEvent() {
   document.addEventListener("mouseup", bindPopupEvent);
 }
 
-function bindPopupEvent(event) {
+export function bindPopupEvent(event) {
   const { target, x, y } = event;
   // 异步获取选中内容
   setTimeout(() => {
@@ -60,14 +60,14 @@ function bindPopupEvent(event) {
   });
 }
 
-function togglePopup() {
+export function togglePopup() {
   if (hasSelector()) {
     createPopup();
   } else {
     popupCopy?.hide();
   }
 }
-function createPopup() {
+export function createPopup() {
   if (!popupCopy) {
     popupCopy = new PopupCopy({
       x: position.x,
@@ -79,8 +79,7 @@ function createPopup() {
   popupCopy?.show();
 }
 
-const texClass = ["base", "katex-html", "katex"];
-function selectorHandle() {
+export function selectorHandle() {
   return new Promise((resolve, reject) => {
     try {
       // 获取选择的内容
@@ -95,8 +94,8 @@ function selectorHandle() {
             // 正则替换 TEX中的\_为_
             const markdownText = unTexMarkdownEscaping(res);
             writeTextClipboard(markdownText || selectedText.toString());
-            chrome.runtime.sendMessage({
-              extensionId: chrome.runtime.id,
+            chrome?.runtime.sendMessage({
+              extensionId: chrome?.runtime.id,
               message: markdownText,
             });
             resolve(markdownText);
@@ -112,7 +111,7 @@ function selectorHandle() {
     }
   });
 }
-function transformRange(range) {
+export function transformRange(range) {
   const { commonAncestorContainer } = range;
   if (commonAncestorContainer.nodeType === Node.TEXT_NODE)
     return range.cloneContents();
@@ -121,6 +120,7 @@ function transformRange(range) {
     ? getParentNodeIsTexNode(commonAncestorContainer)
     : cloneRangeDom(range);
   dom = setKatexText(dom);
+  console.log(dom, 'setKatexText');
   // 如果是code节点则设置code 语言
   if (typeof dom.querySelector === "function") {
     dom = setCodeText(dom);
@@ -129,13 +129,13 @@ function transformRange(range) {
 }
 
 // clone range中的选中内容
-function cloneRangeDom(range) {
+export function cloneRangeDom(range) {
   // 针对处理tex 样式
   return getRangeTexClone(range);
 }
 
 // gemini 代码块语言设置
-function setCodeBlockLanguage(dom) {
+export function setCodeBlockLanguage(dom) {
   let codes = dom?.querySelectorAll?.("code-block");
   for (const code of codes) {
     const langNode = findFirstTextNode(code);
@@ -146,7 +146,7 @@ function setCodeBlockLanguage(dom) {
   }
 }
 // 优化code 代码
-function setCodeText(dom) {
+export function setCodeText(dom) {
   // 根据pre下的第一个textNode 来判断code 语言
   setCodeBlockLanguage(dom);
   const pres = dom.querySelectorAll("pre");
@@ -165,70 +165,7 @@ function setCodeText(dom) {
   return dom;
 }
 
-// 设置Tex Node 转为 markdown 格式
-function setKatexText(node) {
-  if (node.className === "katex") {
-    return transformTex(
-      node.querySelector("annotation").textContent,
-      hasBlock(node),
-    );
-  }
-  // 处理多个Tex
-  const katexList = node.querySelectorAll(".katex");
-  for (const katex of katexList) {
-    let annotationNode = katex.querySelector("annotation");
-    const { focusNode, anchorNode } = getSelection();
-    const lastTextNode =
-      focusNode.nodeType === Node.TEXT_NODE ? focusNode : anchorNode;
-    // 如果不存在annotation 标签则将用text 节点向上查找 katex节点
-    if (!annotationNode) {
-      annotationNode =
-        getParentNodeIsTexNode(lastTextNode)?.querySelector("annotation");
-    }
-    katex.textContent = transformTex(
-      annotationNode?.textContent || lastTextNode.nodeValue || "",
-      hasBlock(katex),
-    );
-  }
-  return node;
-}
-
-function hasBlock(node) {
-  return (
-    getComputedStyle(node).display === "block" || node.style.display === "block"
-  );
-}
-// 判断是否是tex 节点
-function hasTexNode(node) {
-  return texClass.some((item) => node.className === item);
-}
-
-function getParentNodeIsTexNode(node, max = 10) {
-  for (let i = max; i >= 0; i--) {
-    if (node.className === "katex") {
-      return node;
-    } else {
-      node = node.parentNode;
-    }
-  }
-  return null;
-}
-
-function transformTex(text, isBlock = false) {
-  return isBlock ? `$$${text}$$` : `$${text}$`;
-}
-
-function fixMathDollarSpacing(input) {
-  // 匹配 $xxx$，捕获左侧一位（也可能啥都没有）
-  // (?<! ) 匹配非空格（零宽断言，排除已经是空格的）
-  // 支持开头等情况，(?:^|[^ \n\r\t])(\$[^$]+?\$)
-  return input.replace(/(^|\S)(\$[^$]+?\$)/g, (_match, p1, p2) => {
-    // 如果p1是开头，则只返回p2；否则前面加空格
-    return (p1 === '' ? '' : p1 + ' ') + p2;
-  });
-}
-
-async function astHtmlToMarkdown(node) {
+export async function astHtmlToMarkdown(node) {
   const container = document.createElement("div");
   container.append(node);
   const html = container.innerHTML;
@@ -245,5 +182,5 @@ async function astHtmlToMarkdown(node) {
     .use(remarkGfm)
     .use(remarkStringify)
     .process(html);
-  return fixMathDollarSpacing(html2Markdown.value);
+  return fixTexDoubleEscapeInMarkdown(fixMathDollarSpacing(html2Markdown.value));
 }
