@@ -173,7 +173,10 @@ export function setCodeText(dom) {
 export async function astHtmlToMarkdown(node) {
   const container = document.createElement("div");
   container.append(node);
-  const html = container.innerHTML;
+  let html = container.innerHTML;
+  if (setting?.nbspConvert) {
+    html = html.replace(/&nbsp;/g, " ");
+  }
   const html2Markdown = await unified()
     .use(rehypeParse)
     .use(rehypeRemark, {
