@@ -12,10 +12,14 @@ export function openSettingRender() {
   const modeList = [
     { name: "Popup Open", key: "selectionPopup", id: "01", value: true },
     { name: "ContextMenu Open", key: "contextMenus", id: "02", value: true },
+    { name: "&nbsp Convert", key: "nbspConvert", id: "03", value: false, hint: 'Convert &nbsp to blank character' },
   ];
   modeList.forEach((radio) => {
     const box = document.createElement("div");
     box.classList.add("checkbox-item");
+    if (radio.hint) {
+      box.title = radio.hint;
+    }
     const input = document.createElement("input");
     input.type = "checkbox";
     input.id = radio.id;
