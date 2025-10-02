@@ -32,17 +32,18 @@ export function getTextNodeRect(node) {
 
 // 获取第一个文本节点
 export function findFirstTextNode(element) {
+  if (!element) return null;
+  if (element?.tagName === "CODE") return null;
   let node = element.firstChild;
-  while (node) {
-    if (node.nodeType === Node.TEXT_NODE) {
-      return node;
-    }
-    if (node.childNodes && node.childNodes.length) {
-      return findFirstTextNode(node)
-    }
-    node = node.nextSibling;
+  if (!node) return null;
+  if (node.nodeType === Node.COMMENT_NODE) {
+    node = element.firstElementChild;
   }
-  return null; // 没有找到文本节点
+  if (node.nodeType === Node.TEXT_NODE) {
+    return node;
+  } else {
+    return findFirstTextNode(node);
+  }
 }
 
 // 将文本写入剪切板
@@ -61,8 +62,6 @@ export function writeTextClipboard(text) {
     } catch (err) {}
   }
 }
-
-
 
 export function hasBlock(node) {
   return (

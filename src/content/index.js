@@ -19,7 +19,9 @@ import {
   fixMathDollarSpacing,
   getParentNodeIsTexNode,
   getRangeTexClone,
-  hasTexNode, setKatexText, fixTexDoubleEscapeInMarkdown,
+  hasTexNode,
+  setKatexText,
+  fixTexDoubleEscapeInMarkdown,
 } from "../utils/tex.js";
 const position = { x: 0, y: 0 };
 export let popupCopy = null;
@@ -120,7 +122,6 @@ export function transformRange(range) {
     ? getParentNodeIsTexNode(commonAncestorContainer)
     : cloneRangeDom(range);
   dom = setKatexText(dom);
-  console.log(dom, 'setKatexText');
   // 如果是code节点则设置code 语言
   if (typeof dom.querySelector === "function") {
     dom = setCodeText(dom);
@@ -140,9 +141,13 @@ export function setCodeBlockLanguage(dom) {
   for (const code of codes) {
     const langNode = findFirstTextNode(code);
     let lang = langNode?.textContent.toLocaleLowerCase().replace(/['"]/g, "");
-    langNode.textContent = "";
+    if (langNode) {
+      langNode.textContent = "";
+    }
     const codeDom = code.querySelector("code");
-    codeDom.classList.add(`language-${lang}`);
+    if (lang && codeDom) {
+      codeDom.classList?.add(`language-${lang}`);
+    }
   }
 }
 // 优化code 代码
@@ -182,5 +187,7 @@ export async function astHtmlToMarkdown(node) {
     .use(remarkGfm)
     .use(remarkStringify)
     .process(html);
-  return fixTexDoubleEscapeInMarkdown(fixMathDollarSpacing(html2Markdown.value));
+  return fixTexDoubleEscapeInMarkdown(
+    fixMathDollarSpacing(html2Markdown.value),
+  );
 }
