@@ -42,10 +42,10 @@ export function getRangeTexClone(range) {
 }
 
 // 获取tex 根节点
-export function getParentNodeIsTexNode(node, max = 10) {
+export function getParentNodeIsTexNode(node, max = 10, className = ["katex"]) {
   for (let i = max; i >= 0; i--) {
     if (!node) return null;
-    if (node.className === "katex") {
+    if (className.includes(node.className)) {
       return node;
     } else {
       node = node.parentNode;
@@ -124,7 +124,10 @@ export function hasTexNode(node) {
 
 function getGeminiTexMath(node) {
   if (node) {
-    const mathBlock = node.parentNode.parentNode;
+    const mathBlock = getParentNodeIsTexNode(node, 5, [
+      "math-block",
+      "math-inline",
+    ]);
     return mathBlock?.dataset?.math;
   }
   return false;
