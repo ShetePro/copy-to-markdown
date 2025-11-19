@@ -133,7 +133,7 @@ function getGeminiTexMath(node) {
 export function setKatexText(node) {
   if (node.className === "katex") {
     const math =
-      node.querySelector("annotation").textContent || getGeminiTexMath(node);
+      node.querySelector("annotation")?.textContent || getGeminiTexMath(node);
     return transformTex(math, hasBlock(node));
   }
   // 处理多个Tex
