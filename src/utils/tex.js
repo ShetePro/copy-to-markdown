@@ -1,4 +1,4 @@
-import {hasBlock} from "./util.js";
+import { hasBlock } from "./util.js";
 
 export const texClass = ["base", "katex-html", "katex"];
 
@@ -44,7 +44,7 @@ export function getRangeTexClone(range) {
 // 获取tex 根节点
 export function getParentNodeIsTexNode(node, max = 10) {
   for (let i = max; i >= 0; i--) {
-    if (!node) return null
+    if (!node) return null;
     if (node.className === "katex") {
       return node;
     } else {
@@ -65,10 +65,10 @@ export function fixMathDollarSpacing(input) {
     /(\S)?((?<!\$)\$[^$\n]+\$(?!\$))/g, // 只处理$...$，忽略$$...$$
     (match, p1, p2) => {
       if (p1 && !/\s/.test(p1)) {
-        return p1 + ' ' + p2;
+        return p1 + " " + p2;
       }
-      return (p1 || '') + p2;
-    }
+      return (p1 || "") + p2;
+    },
   );
 }
 
@@ -78,43 +78,43 @@ export function fixTexDoubleEscapeInMarkdown(markdown) {
     // 只还原 remark escape 的那批符号 (包括逗号「只用于 \,」)，保留其他所有 latex 命令
     tex = tex
       // remark-stringify会把 \, escape 成 \\,
-      .replace(/\\\\,/g, '\\,')
+      .replace(/\\\\,/g, "\\,")
       // remark-stringify会把下列符号前加单/双斜杠
-      .replace(/\\\\([_{}[$])/g, '$1')
-      .replace(/\\([_{}$])/g, '$1')
+      .replace(/\\\\([_{}[$])/g, "$1")
+      .replace(/\\([_{}$])/g, "$1")
       // 专门处理方括号的转义
-      .replace(/\\([[$])/g, '$1');
+      .replace(/\\([[$])/g, "$1");
     return `$$${tex}$$`;
   });
-  
+
   // 非块级，分段处理
   let segments = [];
   let lastIndex = 0;
   markdown.replace(/\$\$([\s\S]*?)\$\$/g, (match, _tex, offset) => {
     if (lastIndex < offset)
-      segments.push({ type: 'text', text: markdown.slice(lastIndex, offset) });
-    segments.push({ type: 'block', text: match });
+      segments.push({ type: "text", text: markdown.slice(lastIndex, offset) });
+    segments.push({ type: "block", text: match });
     lastIndex = offset + match.length;
   });
-  
+
   if (lastIndex < markdown.length)
-    segments.push({ type: 'text', text: markdown.slice(lastIndex) });
-  
-  segments = segments.map(seg => {
-    if (seg.type === 'text') {
+    segments.push({ type: "text", text: markdown.slice(lastIndex) });
+
+  segments = segments.map((seg) => {
+    if (seg.type === "text") {
       return seg.text.replace(/(?<!\$)\$([^\n$]+?)\$(?!\$)/g, (_all, tex) => {
         tex = tex
-          .replace(/\\\\,/g, '\\,')
-          .replace(/\\\\([_{}[\]$])/g, '$1')
-          .replace(/\\([_{}$])/g, '$1')
+          .replace(/\\\\,/g, "\\,")
+          .replace(/\\\\([_{}[\]$])/g, "$1")
+          .replace(/\\([_{}$])/g, "$1")
           // 同样在行内公式中也需要处理方括号
-          .replace(/\\([$])/g, '$1');
+          .replace(/\\([$])/g, "$1");
         return `$${tex}$`;
       });
     }
     return seg.text;
   });
-  return segments.join('');
+  return segments.join("");
 }
 
 // 判断是否是tex 节点
@@ -122,13 +122,19 @@ export function hasTexNode(node) {
   return texClass.some((item) => node.className === item);
 }
 
+function getGeminiTexMath(node) {
+  if (node) {
+    const mathBlock = node.parentNode.parentNode;
+    return mathBlock?.dataset?.math;
+  }
+  return false;
+}
 // 设置Tex Node 转为 markdown 格式
 export function setKatexText(node) {
   if (node.className === "katex") {
-    return transformTex(
-      node.querySelector("annotation").textContent,
-      hasBlock(node),
-    );
+    const math =
+      node.querySelector("annotation").textContent || getGeminiTexMath(node);
+    return transformTex(math, hasBlock(node));
   }
   // 处理多个Tex
   const katexList = node.querySelectorAll(".katex");
@@ -136,13 +142,16 @@ export function setKatexText(node) {
   const lastTextNode =
     focusNode.nodeType === Node.TEXT_NODE ? focusNode : anchorNode;
   for (const katex of katexList) {
-    let annotationNode = katex.querySelector("annotation") || getParentNodeIsTexNode(lastTextNode)?.querySelector("annotation");
+    let annotationNode =
+      katex.querySelector("annotation") ||
+      getParentNodeIsTexNode(lastTextNode)?.querySelector("annotation");
     // 如果不存在annotation 标签则直接返回dom
-    if (!annotationNode) {
-      return node
+    const math = getGeminiTexMath(katex);
+    if (!annotationNode && !math) {
+      return node;
     }
     katex.textContent = transformTex(
-      annotationNode?.textContent || lastTextNode.nodeValue || "",
+      annotationNode?.textContent || math || lastTextNode.nodeValue || "",
       hasBlock(katex),
     );
   }
@@ -161,4 +170,3 @@ export function unTexMarkdownEscaping(res) {
       .replace(/\\}/g, "}");
   });
 }
-
