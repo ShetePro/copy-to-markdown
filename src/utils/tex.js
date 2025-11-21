@@ -21,7 +21,13 @@ export function getRangeTexClone(range) {
   // 匹配katex node
   for (let i = 0; i < selectTex.length; i++) {
     const item = selectTex[i];
-    const some = item.innerHTML === cloneTex[match].innerHTML;
+    const math1 = getTexMath(item);
+    const math2 = getTexMath(cloneTex[match]);
+    // 如果节点在选中范围之前则跳过
+    if (item.compareDocumentPosition(range.startContainer) !== Node.DOCUMENT_POSITION_PRECEDING) {
+      continue;
+    }
+    const some =  item.innerHTML === cloneTex[match].innerHTML ||  math1 === math2;
     if (some) {
       match = Math.min(match + 1, cloneTex.length);
     } else if (match > 0 && match < cloneTex.length) {
@@ -36,11 +42,16 @@ export function getRangeTexClone(range) {
     // 将计算样式应用到克隆的元素
     const prop = "display";
     const computedStyle = window.getComputedStyle(selectTex[startIndex++]);
-    cloneTex[index].style[prop] = computedStyle.getPropertyValue(prop);
+    cloneTex[index].style[prop] =
+      computedStyle.display || computedStyle.getPropertyValue(prop);
   }
   return clonedContent;
 }
-
+export function getTexMath(node) {
+  return (
+    node.querySelector("annotation")?.textContent || getGeminiTexMath(node)
+  );
+}
 // 获取tex 根节点
 export function getParentNodeIsTexNode(node, max = 10, className = ["katex"]) {
   for (let i = max; i >= 0; i--) {
@@ -77,8 +88,8 @@ export function fixTexDoubleEscapeInMarkdown(markdown) {
   markdown = markdown.replace(/\$\$([\s\S]*?)\$\$/g, (block, tex) => {
     // 只还原 remark escape 的那批符号 (包括逗号「只用于 \,」)，保留其他所有 latex 命令
     tex = tex
-      // remark-stringify会把 \, escape 成 \\,
-      .replace(/\\\\,/g, "\\,")
+      // remark-stringify会把 \ escape 成 \\,
+      .replace(/\\\\/g, "\\")
       // remark-stringify会把下列符号前加单/双斜杠
       .replace(/\\\\([_{}[$])/g, "$1")
       .replace(/\\([_{}$])/g, "$1")
@@ -135,9 +146,7 @@ function getGeminiTexMath(node) {
 // 设置Tex Node 转为 markdown 格式
 export function setKatexText(node) {
   if (node.className === "katex") {
-    const math =
-      node.querySelector("annotation")?.textContent || getGeminiTexMath(node);
-    return transformTex(math, hasBlock(node));
+    return transformTex(getTexMath(node), hasBlock(node));
   }
   // 处理多个Tex
   const katexList = node.querySelectorAll(".katex");
