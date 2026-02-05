@@ -7,6 +7,7 @@ import {
   findFirstTextNode,
   hasSelector,
   writeTextClipboard,
+  removeListEmptyLines,
 } from "../utils/util.js";
 import { PopupCopy } from "./popupCopy.js";
 import "./copyStyle.module.css";
@@ -182,5 +183,7 @@ export async function astHtmlToMarkdown(node) {
     .use(remarkGfm)
     .use(remarkStringify)
     .process(html);
-  return fixTexDoubleEscapeInMarkdown(fixMathDollarSpacing(html2Markdown.value));
+  const markdown = fixTexDoubleEscapeInMarkdown(fixMathDollarSpacing(html2Markdown.value));
+  // 移除列表项之间的空行，使列表更紧凑
+  return removeListEmptyLines(markdown);
 }
