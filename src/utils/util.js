@@ -69,3 +69,33 @@ export function hasBlock(node) {
     getComputedStyle(node).display === "block" || node.style.display === "block"
   );
 }
+
+/**
+ * 移除列表项之间的空行
+ * 将无序列表、有序列表和任务列表中的空行移除，使列表更紧凑
+ * @param {string} markdown - 原始 Markdown 文本
+ * @returns {string} - 处理后的 Markdown 文本
+ */
+export function removeListEmptyLines(markdown) {
+  if (!markdown) return markdown;
+  
+  // 匹配列表项之间的空行：
+  // 1. 无序列表: 行首是 -, *, + 后跟空格
+  // 2. 有序列表: 行首是数字. 后跟空格  
+  // 3. 任务列表: 行首是 - [ ], - [x], * [ ], * [x] 等
+  
+  // 先处理无序列表和任务列表项之间的空行
+  // 匹配模式：列表项行 + 空行 + 下一个列表项行
+  let result = markdown.replace(
+    /^(\s*[-*+]\s+(?:\[[ xX]\]\s+)?[^\n]+)\n\n(?=\s*[-*+]\s+(?:\[[ xX]\]\s+)?)/gm,
+    '$1\n'
+  );
+  
+  // 处理有序列表项之间的空行
+  result = result.replace(
+    /^(\s*\d+\.\s+[^\n]+)\n\n(?=\s*\d+\.\s+)/gm,
+    '$1\n'
+  );
+  
+  return result;
+}
