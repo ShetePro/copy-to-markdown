@@ -20,7 +20,9 @@ import {
   fixMathDollarSpacing,
   getParentNodeIsTexNode,
   getRangeTexClone,
-  hasTexNode, setKatexText, fixTexDoubleEscapeInMarkdown,
+  hasTexNode,
+  setKatexText,
+  fixTexDoubleEscapeInMarkdown,
 } from "../utils/tex.js";
 const position = { x: 0, y: 0 };
 export let popupCopy = null;
@@ -141,9 +143,13 @@ export function setCodeBlockLanguage(dom) {
   for (const code of codes) {
     const langNode = findFirstTextNode(code);
     let lang = langNode?.textContent.toLocaleLowerCase().replace(/['"]/g, "");
-    langNode.textContent = "";
+    if (langNode) {
+      langNode.textContent = "";
+    }
     const codeDom = code.querySelector("code");
-    codeDom.classList.add(`language-${lang}`);
+    if (lang && codeDom) {
+      codeDom.classList?.add(`language-${lang}`);
+    }
   }
 }
 // 优化code 代码
@@ -169,7 +175,10 @@ export function setCodeText(dom) {
 export async function astHtmlToMarkdown(node) {
   const container = document.createElement("div");
   container.append(node);
-  const html = container.innerHTML;
+  let html = container.innerHTML;
+  if (setting?.nbspConvert) {
+    html = html.replace(/&nbsp;/g, " ");
+  }
   const html2Markdown = await unified()
     .use(rehypeParse)
     .use(rehypeRemark, {
