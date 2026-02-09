@@ -16,7 +16,7 @@
     "postcss": "^8.4.47",
     "postcss-modules": "^6.0.0",
     "prettier": "^3.3.3",
-    "vite": "^5.4.8",
+    "vite": "7.1.11",
     "vitest": "^3.1.4"
   },
   "dependencies": {

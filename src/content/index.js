@@ -8,6 +8,7 @@ import {
   hasSelector,
   writeTextClipboard,
   removeListEmptyLines,
+  wrapOrphanListItems,
 } from "../utils/util.js";
 import { PopupCopy } from "./popupCopy.js";
 import "./copyStyle.module.css";
@@ -173,6 +174,9 @@ export function setCodeText(dom) {
 }
 
 export async function astHtmlToMarkdown(node) {
+  // 预处理孤立的 li 元素，将其包装为有序列表
+  node = wrapOrphanListItems(node);
+  
   const container = document.createElement("div");
   container.append(node);
   let html = container.innerHTML;
