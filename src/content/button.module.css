@@ -1,133 +1,253 @@
 .copyTransformBtn {
-  --background: #fff;
-  --color: #202124;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  transition-duration: 0.3s;
-  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.199);
-  background-color: var(--background);
-  white-space: nowrap;
-  /*background-color: rgb(255, 65, 65);*/
-}
-.copyTransformBtnContainer {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  transition-duration: 0.3s;
-  border-radius: 50%;
-}
-.btnSuccess {
-  --background: #00ad54;
-}
-.btnError {
-  --background: #e52441;
+    --ink: rgba(40, 40, 40, 0.95);
+
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 44px;
+    height: 44px;
+
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    cursor: pointer;
+
+    background: transparent;
+    overflow: hidden;
+    white-space: nowrap;
+
+    /* 恢复过渡动画 - box-shadow 快速响应 */
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.1s,
+    border-color 0.1s,
+    box-shadow 0.1s;
 }
 
+/* 内部元素禁止鼠标响应 */
+.copyTransformBtn > * {
+    pointer-events: none;
+}
+
+/* 玻璃光泽层 - 增强立体感 */
+.copyTransformBtn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+
+    /* 更强的顶部高光 */
+    background: linear-gradient(
+            160deg,
+            rgba(255, 255, 255, 0.5) 0%,
+            rgba(255, 255, 255, 0.2) 30%,
+            transparent 50%
+    );
+
+    /* 多层阴影营造厚度感 */
+    box-shadow: /* 外层悬浮阴影 */ 0 8px 24px rgba(0, 0, 0, 0.12),
+    0 4px 8px rgba(0, 0, 0, 0.08),
+        /* 顶部高光边缘 */ inset 0 2px 1px rgba(255, 255, 255, 0.95),
+        /* 底部暗部 - 营造厚度 */ inset 0 -2px 1px rgba(0, 0, 0, 0.08),
+        /* 左侧微光 */ inset 1px 0 1px rgba(255, 255, 255, 0.3);
+}
+
+.copyTransformBtnContainer {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 50%;
+    background: transparent;
+    /* 子元素不继承过渡，防止跳动 */
+    transition: none;
+}
+
+/* ====== 状态管理 ====== */
+
+/* 展开状态 */
+.copyTransformBtn:hover,
+.copyTransformBtn:active {
+    width: 140px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+/* 鼠标移出时的延迟收缩效果 */
+.copyTransformBtn:not(:hover) {
+    /* 先保持宽度 140px 给图标回中间的时间，延迟 0.3s 后再收缩 */
+    transition-delay: 0.3s;
+}
+
+/* Hover 上浮 - 更强的立体悬浮感 */
+.copyTransformBtn:hover {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15),
+    0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Active 按下 - 中间凹下去的3D感，外层阴影保持 */
+.copyTransformBtn:active {
+    box-shadow: /* 内阴影营造凹陷 */ inset 0 3px 6px rgba(0, 0, 0, 0.15),
+    inset 0 1px 2px rgba(0, 0, 0, 0.1),
+        /* 顶部微光保留 */ inset 0 -1px 1px rgba(255, 255, 255, 0.3),
+        /* 外层阴影保持不变 */ 0 12px 32px rgba(0, 0, 0, 0.15),
+    0 6px 12px rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.03);
+    transform: scale(0.97);
+    transition: all 0.1s ease-out;
+}
+
+/* 子元素布局 - 禁用所有过渡 */
+.copyTransformBtn:hover .sign,
+.copyTransformBtn:active .sign {
+    width: 28%;
+}
+
+.copyTransformBtn:hover .text,
+.copyTransformBtn:active .text {
+    opacity: 1;
+    width: 72%;
+    padding-right: 12px;
+}
+
+/* Success/Error 状态 - 强制保持展开 + 更快的颜色过渡 + 发光效果 */
+.btnFinish.btnSuccess,
+.btnFinish.btnError {
+    width: 140px !important;
+    border-radius: 24px !important;
+    /* 颜色变化立即响应，不拖沓 */
+    transition: background-color 0.08s ease-out,
+    border-color 0.08s ease-out,
+    box-shadow 0.08s ease-out !important;
+}
+
+.btnFinish.btnSuccess {
+    --ink: #1e8449;
+    border-color: rgba(46, 204, 113, 0.8);
+    background: rgba(46, 204, 113, 0.15);
+    /* 添加绿色发光 */
+    box-shadow: 0 0 20px rgba(46, 204, 113, 0.4),
+    0 0 40px rgba(46, 204, 113, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.btnFinish.btnError {
+    --ink: #922b21;
+    border-color: rgba(231, 76, 60, 0.8);
+    background: rgba(231, 76, 60, 0.15);
+    /* 添加红色发光 */
+    box-shadow: 0 0 20px rgba(231, 76, 60, 0.4),
+    0 0 40px rgba(231, 76, 60, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* 文字/图标 */
 .sign {
-  box-sizing: border-box;
-  width: 100%;
-  transition-duration: 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    box-sizing: border-box;
+    width: 100%;
+    /* 恢复平滑过渡 */
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .sign svg {
-  width: 20px;
-  height: 20px;
+    width: 20px;
+    height: 20px;
 }
 
-/* text */
+.sign svg path {
+    fill: var(--color);
+    /* 图标颜色变化也要快 */
+    transition: fill 0.1s ease-out;
+}
+
 .text {
-  position: absolute;
-  right: 0;
-  width: 0;
-  opacity: 0;
-  font-size: 1em;
-  font-weight: 600;
-  color: var(--color);
-  transition-duration: 0.3s;
-  white-space: nowrap;
-}
-/* hover effect on button width */
-.copyTransformBtn:hover {
-  width: 130px;
-  border-radius: 40px;
-  transition-duration: 0.3s;
+    position: absolute;
+    right: 0;
+    width: 0;
+    opacity: 0;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--color);
+    /* 恢复平滑过渡 */
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s;
+    white-space: nowrap;
 }
 
-.copyTransformBtn:hover .sign {
-  width: 30%;
-  transition-duration: 0.3s;
-}
-/* hover effect button's text */
-.copyTransformBtn:hover .text {
-  opacity: 1;
-  width: 70%;
-  transition-duration: 0.3s;
-  padding-right: 10px;
-}
-/* button click effect*/
-.copyTransformBtn:active {
-  transform: translate(2px, 2px);
+/* Loading 状态 - Transform 文字旋转 */
+.btnFinish:not(.btnSuccess):not(.btnError) .text {
+    animation: loadingPulse 0.6s ease-in-out infinite;
 }
 
+@keyframes loadingPulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* Tooltip */
 .tooltip {
-  position: absolute;
-  top: 0;
-  font-size: 14px;
-  background: var(--background);
-  color: white;
-  padding: 5px 8px;
-  border-radius: 5px;
-  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
-  opacity: 0;
-  pointer-events: none;
-  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    position: absolute;
+    top: 0;
+    font-size: 13px;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.95);
+    color: rgba(40, 40, 40, 0.9);
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s ease;
 }
 
 .tooltip::before {
-  position: absolute;
-  content: "";
-  height: 8px;
-  width: 8px;
-  background: var(--background);
-  bottom: -3px;
-  left: 50%;
-  transform: translate(-50%) rotate(45deg);
-  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    position: absolute;
+    content: "";
+    height: 6px;
+    width: 6px;
+    background: rgba(255, 255, 255, 0.95);
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    bottom: -4px;
+    left: 50%;
+    transform: translate(-50%) rotate(45deg);
 }
+
 .btnFinish {
-  --color: #fff;
-  color: var(--color);
-  /*background: linear-gradient(320deg, rgb(3, 77, 146), rgb(0, 60, 255));*/
-  background-color: var(--background);
-  .sign svg path {
-    fill: white;
-  }
-  .tooltip {
-    top: -45px;
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    text-shadow: 0px -1px 0px rgba(0, 0, 0, 0.1);
-    background-color: var(--background);
-    /*background: linear-gradient(320deg, rgb(3, 77, 146), rgb(0, 60, 255));*/
-  }
-  .tooltip::before {
-    /*background: linear-gradient(320deg, rgb(3, 77, 146), rgb(0, 60, 255));*/
-    background-color: var(--background);
-    color: var(--color);
-  }
+    --color: rgba(40, 40, 40, 0.92);
+}
+
+.btnFinish .sign svg path {
+    fill: var(--ink);
+}
+
+.btnSuccess.btnFinish .sign svg path {
+    fill: #1e8449;
+}
+
+.btnError.btnFinish .sign svg path {
+    fill: #922b21;
+}
+
+/* 完全隐藏 Tooltip，只用颜色反馈 */
+.btnFinish .tooltip {
+    display: none;
 }
