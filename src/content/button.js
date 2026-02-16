@@ -1,7 +1,7 @@
-import {debounce} from "../utils/util.js";
+import { debounce } from "../utils/util.js";
 import ButtonStyle from "./button.module.css";
 
-export function createButton({clickCallback}) {
+export function createButton({ clickCallback }) {
   const button = document.createElement("button");
   button.classList.add(ButtonStyle.copyTransformBtn);
   const sign = document.createElement("div");
@@ -21,9 +21,9 @@ export function createButton({clickCallback}) {
   // 1秒后自动恢复
   const recover = debounce(() => {
     button.classList.remove(
-        ButtonStyle.btnSuccess,
-        ButtonStyle.btnError,
-        ButtonStyle.btnFinish,
+      ButtonStyle.btnSuccess,
+      ButtonStyle.btnError,
+      ButtonStyle.btnFinish,
     );
   }, 1000);
 
