@@ -14,7 +14,11 @@
     border-radius: 50%;
     cursor: pointer;
 
-    background: transparent;
+    /* 毛玻璃效果 - 极轻微模糊，高通透 */
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(4px) saturate(110%);
+    -webkit-backdrop-filter: blur(4px) saturate(110%);
+
     overflow: hidden;
     white-space: nowrap;
 
