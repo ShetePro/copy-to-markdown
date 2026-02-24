@@ -14,7 +14,7 @@ import {
   removeListEmptyLines,
   wrapOrphanListItems,
 } from "../utils/util.js";
-import { PopupCopy } from "./popupCopy.js";
+import {PopupCopy} from "./popupCopy.js";
 import "./copyStyle.module.css";
 import {
   getChromeStorage,
@@ -40,8 +40,8 @@ getChromeStorage().then((res) => {
 });
 
 watchChromeStorage((changes) => {
-  const { newValue, oldValue } = changes;
-  setting = newValue;
+  const {newValue, oldValue} = changes;
+  Object.assign(setting, newValue);
   if (newValue.selectionPopup !== oldValue.selectionPopup) {
     newValue.selectionPopup ? togglePopup() : popupCopy?.hide();
   }
@@ -60,10 +60,11 @@ function initEvent() {
 }
 
 export function bindPopupEvent(event) {
-  const { target, x, y } = event;
+  const {target, x, y} = event;
   // 异步获取选中内容
   setTimeout(() => {
-    if (target !== popupCopy?.popup) {
+    // 关键修复：检查 target 是否在 popup 容器内，防止点击按钮时重新定位
+    if (target !== popupCopy?.popup && !popupCopy?.popup?.contains(target)) {
       position.x = x;
       position.y = y;
       if (!setting.selectionPopup) return;
@@ -96,9 +97,9 @@ export function selectorHandle() {
   return new Promise((resolve, reject) => {
     try {
       // 获取选择的内容
-      const selectedText = window.getSelection();
+      const selectedText = globalThis.getSelection();
       const ranges = [];
-      const { rangeCount } = selectedText;
+      const {rangeCount} = selectedText;
       for (let i = 0; i < rangeCount; ++i) {
         ranges[i] = selectedText.getRangeAt(i);
         const copyNode = transformRange(ranges[i]);
@@ -113,12 +114,6 @@ export function selectorHandle() {
               extensionId: chrome?.runtime.id,
               message: markdownText,
             });
-            resolve(markdownText);
-          })
-          .catch((e) => {
-            console.log(e);
-            reject(e);
-          });
       }
     } catch (e) {
       console.log(e);
@@ -183,13 +178,13 @@ function detectListTypeFromRange(range) {
 }
 
 export function transformRange(range) {
-  const { commonAncestorContainer } = range;
+  const {commonAncestorContainer} = range;
   if (commonAncestorContainer.nodeType === Node.TEXT_NODE)
     return range.cloneContents();
   const isTexNode = hasTexNode(commonAncestorContainer);
   let dom = isTexNode
-    ? getParentNodeIsTexNode(commonAncestorContainer)
-    : cloneRangeDom(range);
+      ? getParentNodeIsTexNode(commonAncestorContainer)
+      : cloneRangeDom(range);
   dom = setKatexText(dom);
   console.log(dom, "setKatexText");
   // 如果是code节点则设置code 语言
@@ -210,7 +205,9 @@ export function setCodeBlockLanguage(dom) {
   let codes = dom?.querySelectorAll?.("code-block");
   for (const code of codes) {
     const langNode = findFirstTextNode(code);
-    let lang = langNode?.textContent.toLocaleLowerCase().replace(/['"]/g, "");
+    let lang = langNode?.textContent
+        .toLocaleLowerCase()
+        .replaceAll(/['"]/g, "");
     if (langNode) {
       langNode.textContent = "";
     }
@@ -231,8 +228,8 @@ export function setCodeText(dom) {
     if (code) {
       code?.remove();
       let lang = findFirstTextNode(pre)
-        ?.textContent.toLocaleLowerCase()
-        .replace(/['"]/g, "");
+          ?.textContent.toLocaleLowerCase()
+          .replaceAll(/['"]/g, "");
       lang && code?.classList.add(`language-${lang}`);
       pre.innerHTML = "";
       pre.appendChild(code);
@@ -249,7 +246,7 @@ export async function astHtmlToMarkdown(node, listType = "ol") {
   container.append(node);
   let html = container.innerHTML;
   if (setting?.nbspConvert) {
-    html = html.replace(/&nbsp;/g, " ");
+    html = html.replaceAll("&nbsp;", " ");
   }
   const html2Markdown = await unified()
     .use(rehypeParse)
