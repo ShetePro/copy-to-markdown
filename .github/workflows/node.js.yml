@@ -38,7 +38,7 @@ jobs:
 
       # 4. 构建与测试
       - name: Build
-        run: pnpm run build --if-present  # 👈 [修改点3] 改用 pnpm 运行
+        run: pnpm run build  # 👈 [修改点3] 改用 pnpm 运行
 
       - name: Test
         run: pnpm test  # 👈 [修改点4] 改用 pnpm 运行
