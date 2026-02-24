@@ -105,15 +105,15 @@ export function selectorHandle() {
         const copyNode = transformRange(ranges[i]);
         // 检测原始选区的上下文，判断孤立的 li 应该被包装成 ul 还是 ol
         const listType = detectListTypeFromRange(ranges[i]);
-        astHtmlToMarkdown(copyNode, listType)
-          .then((res) => {
-            // 正则替换 TEX中的\_为_
-            const markdownText = unTexMarkdownEscaping(res);
-            writeTextClipboard(markdownText || selectedText.toString());
-            chrome?.runtime.sendMessage({
-              extensionId: chrome?.runtime.id,
-              message: markdownText,
-            });
+        astHtmlToMarkdown(copyNode, listType).then((res) => {
+          // 正则替换 TEX中的\_为_
+          const markdownText = unTexMarkdownEscaping(res);
+          writeTextClipboard(markdownText || selectedText.toString());
+          chrome?.runtime.sendMessage({
+            extensionId: chrome?.runtime.id,
+            message: markdownText,
+          });
+        });
       }
     } catch (e) {
       console.log(e);
