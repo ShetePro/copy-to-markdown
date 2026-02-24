@@ -1,4 +1,4 @@
-import { describe, expect, test, beforeEach, vi } from "vitest";
+import { describe, expect, test, beforeEach, afterEach, vi } from "vitest";
 import {
   texClass,
   hasTexNode,
@@ -72,62 +72,151 @@ describe('unTexMarkdownEscaping', () => {
 describe('setKatexText', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
+    // 默认 mock getSelection
+    vi.spyOn(window, 'getSelection').mockReturnValue({
+      focusNode: document.body,
+      anchorNode: document.body,
+    })
   })
-  
-  test('处理单个 .katex 元素', () => {
-    const wrapper = document.createElement('div')
-    wrapper.className = 'katex block'
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  test('处理单个 .katex 元素（inline）', () => {
+    const wrapper = document.createElement('span')
+    wrapper.className = 'katex'
     wrapper.innerHTML = `
       <annotation>c = \\pm\\sqrt{a^2 + b^2}</annotation>
     `
     document.body.appendChild(wrapper)
-    
+
     const result = setKatexText(wrapper)
-    expect(result.textContent).toBe('[block]c = \\pm\\sqrt{a^2 + b^2}')
+    expect(result).toBe('$c = \\pm\\sqrt{a^2 + b^2}$')
   })
-  
-  // test('处理多个 .katex 元素', () => {
-  //   const container = document.createElement('div')
-  //   container.innerHTML = `
-  //     <span class="katex">
-  //       <annotation>a + b</annotation>
-  //     </span>
-  //     <span class="katex block">
-  //       <annotation>x^2 + y^2</annotation>
-  //     </span>
-  //   `
-  //   document.body.appendChild(container)
-  //
-  //   setKatexText(container)
-  //
-  //   const katexList = container.querySelectorAll('.katex')
-  //   expect(katexList[0].textContent).toBe('[inline]a + b')
-  //   expect(katexList[1].textContent).toBe('[block]x^2 + y^2')
-  // })
-  //
-  // test('fallback：annotation 缺失时使用 getParentNodeIsTexNode', () => {
-  //   const container = document.createElement('div')
-  //   const katex = document.createElement('span')
-  //   katex.className = 'katex'
-  //   katex.innerHTML = ``
-  //   container.appendChild(katex)
-  //
-  //   const textNode = document.createTextNode('fallback content')
-  //   katex.appendChild(textNode)
-  //
-  //   // 模拟 selection
-  //   const selection = {
-  //     focusNode: textNode,
-  //     anchorNode: textNode,
-  //   }
-  //   vi.spyOn(window, 'getSelection').mockReturnValue(selection)
-  //
-  //   const annotation = document.createElement('annotation')
-  //   annotation.textContent = 'a^2 + b^2'
-  //   katex.appendChild(annotation)
-  //
-  //   setKatexText(container)
-  //
-  //   expect(katex.textContent).toBe('[inline]a^2 + b^2')
-  // })
+
+  test('处理单个 .katex 元素（block）', () => {
+    const wrapper = document.createElement('div')
+    wrapper.className = 'katex'
+    wrapper.style.display = 'block'
+    wrapper.innerHTML = `
+      <annotation>x^2 + y^2 = z^2</annotation>
+    `
+    document.body.appendChild(wrapper)
+
+    const result = setKatexText(wrapper)
+    expect(result).toBe('$$x^2 + y^2 = z^2$$')
+  })
+
+  test('处理容器内的多个 .katex 元素', () => {
+    const container = document.createElement('div')
+    container.innerHTML = `
+      <span class="katex">
+        <annotation>a + b</annotation>
+      </span>
+      <div class="katex" style="display: block;">
+        <annotation>x^2 + y^2</annotation>
+      </div>
+    `
+    document.body.appendChild(container)
+
+    // 模拟 selection 指向第一个 katex
+    const firstKatex = container.querySelector('.katex')
+    vi.spyOn(window, 'getSelection').mockReturnValue({
+      focusNode: firstKatex,
+      anchorNode: firstKatex,
+    })
+
+    setKatexText(container)
+
+    const katexList = container.querySelectorAll('.katex')
+    expect(katexList[0].textContent).toBe('$a + b$')
+    expect(katexList[1].textContent).toBe('$$x^2 + y^2$$')
+  })
+
+  test('处理带 data-math 属性的 Gemini 格式（math-inline）', () => {
+    const container = document.createElement('div')
+    container.innerHTML = `
+      <span class="math-inline" data-math="E = mc^2">
+        <span class="katex">E = mc²</span>
+      </span>
+    `
+    document.body.appendChild(container)
+
+    const mathInline = container.querySelector('.math-inline')
+    vi.spyOn(window, 'getSelection').mockReturnValue({
+      focusNode: mathInline,
+      anchorNode: mathInline,
+    })
+
+    setKatexText(container)
+
+    const katex = container.querySelector('.katex')
+    expect(katex.textContent).toBe('$E = mc^2$')
+  })
+
+  test('处理 block 模式的 Gemini 格式（math-block）', () => {
+    const container = document.createElement('div')
+    container.innerHTML = `
+      <div class="math-block" data-math="\\\\sum_{i=1}^{n} x_i" style="display: block;">
+        <div class="katex" style="display: block;">∑ xᵢ</div>
+      </div>
+    `
+    document.body.appendChild(container)
+
+    const mathBlock = container.querySelector('.math-block')
+    vi.spyOn(window, 'getSelection').mockReturnValue({
+      focusNode: mathBlock,
+      anchorNode: mathBlock,
+    })
+
+    setKatexText(container)
+
+    const katex = container.querySelector('.katex')
+    expect(katex.textContent).toBe('$$\\\\sum_{i=1}^{n} x_i$$')
+  })
+
+  test('当没有 annotation 和 math 时返回原 node', () => {
+    const container = document.createElement('div')
+    container.innerHTML = `
+      <span class="katex">
+        <span>Some text without math</span>
+      </span>
+    `
+    document.body.appendChild(container)
+
+    const katex = container.querySelector('.katex')
+    vi.spyOn(window, 'getSelection').mockReturnValue({
+      focusNode: katex,
+      anchorNode: katex,
+    })
+
+    const result = setKatexText(container)
+
+    // 没有 annotation 和 math，应该返回原 node
+    expect(result).toBe(container)
+  })
+
+  test('使用 selection 的 lastTextNode 获取 annotation', () => {
+    const container = document.createElement('div')
+    container.innerHTML = `
+      <span class="katex">
+        <annotation>formula from annotation</annotation>
+      </span>
+    `
+    document.body.appendChild(container)
+
+    const katex = container.querySelector('.katex')
+    const annotation = katex.querySelector('annotation')
+    
+    // 模拟 selection 指向 annotation 内部
+    vi.spyOn(window, 'getSelection').mockReturnValue({
+      focusNode: annotation.firstChild,
+      anchorNode: annotation.firstChild,
+    })
+
+    setKatexText(container)
+
+    expect(katex.textContent).toBe('$formula from annotation$')
+  })
 })
