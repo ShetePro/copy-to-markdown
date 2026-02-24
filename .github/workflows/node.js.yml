@@ -1,6 +1,3 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
 name: Node.js CI
 
 on:
@@ -20,12 +17,28 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+      - uses: actions/checkout@v4
+
+      # 1. 安装 pnpm
+      # 它会自动读取你 package.json 里的 "packageManager": "pnpm@x.x.x" 配置
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      # 2. 设置 Node 环境 + 开启 pnpm 缓存
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'  # 👈 [修改点1] 这里必须是 'pnpm'，不能是 'npm'
+
+      # 3. 安装依赖
+      # pnpm install 在 CI 环境下会自动启用 --frozen-lockfile (类似 npm ci)
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile  # 👈 [修改点2] 替代 npm ci
+
+      # 4. 构建与测试
+      - name: Build
+        run: pnpm run build  # 👈 [修改点3] 改用 pnpm 运行
+
+      - name: Test
+        run: pnpm test  # 👈 [修改点4] 改用 pnpm 运行
