@@ -1,4 +1,4 @@
-import { unified } from "unified";
+import {unified} from "unified";
 import rehypeParse from "rehype-parse";
 import rehypeRemark from "rehype-remark";
 import remarkStringify from "remark-stringify";
@@ -10,7 +10,7 @@ import {
   removeListEmptyLines,
   wrapOrphanListItems,
 } from "../utils/util.js";
-import { PopupCopy } from "./popupCopy.js";
+import {PopupCopy} from "./popupCopy.js";
 import "./copyStyle.module.css";
 import {
   getChromeStorage,
@@ -25,17 +25,18 @@ import {
   setKatexText,
   fixTexDoubleEscapeInMarkdown,
 } from "../utils/tex.js";
-const position = { x: 0, y: 0 };
+
+const position = {x: 0, y: 0};
 export let popupCopy = null;
-export let setting = {};
-getChromeStorage().then((res) => {
-  setting = res;
-  initEvent();
-});
+export const setting = {};
+
+const storage = await getChromeStorage();
+Object.assign(setting, storage);
+initEvent();
 
 watchChromeStorage((changes) => {
-  const { newValue, oldValue } = changes;
-  setting = newValue;
+  const {newValue, oldValue} = changes;
+  Object.assign(setting, newValue);
   if (newValue.selectionPopup !== oldValue.selectionPopup) {
     newValue.selectionPopup ? togglePopup() : popupCopy?.hide();
   }
@@ -43,7 +44,7 @@ watchChromeStorage((changes) => {
 // contentMenu click event
 chrome?.runtime.onMessage.addListener((response) => {
   if (response === "transformToMarkdown") {
-    selectorHandle();
+    selectorHandle().catch(console.error);
   }
 });
 
@@ -52,10 +53,11 @@ function initEvent() {
 }
 
 export function bindPopupEvent(event) {
-  const { target, x, y } = event;
+  const {target, x, y} = event;
   // 异步获取选中内容
   setTimeout(() => {
-    if (target !== popupCopy?.popup) {
+    // 关键修复：检查 target 是否在 popup 容器内，防止点击按钮时重新定位
+    if (target !== popupCopy?.popup && !popupCopy?.popup?.contains(target)) {
       position.x = x;
       position.y = y;
       if (!setting.selectionPopup) return;
@@ -71,6 +73,7 @@ export function togglePopup() {
     popupCopy?.hide();
   }
 }
+
 export function createPopup() {
   if (!popupCopy) {
     popupCopy = new PopupCopy({
@@ -87,27 +90,27 @@ export function selectorHandle() {
   return new Promise((resolve, reject) => {
     try {
       // 获取选择的内容
-      const selectedText = window.getSelection();
+      const selectedText = globalThis.getSelection();
       const ranges = [];
-      const { rangeCount } = selectedText;
+      const {rangeCount} = selectedText;
       for (let i = 0; i < rangeCount; ++i) {
         ranges[i] = selectedText.getRangeAt(i);
         const copyNode = transformRange(ranges[i]);
         astHtmlToMarkdown(copyNode)
-          .then((res) => {
-            // 正则替换 TEX中的\_为_
-            const markdownText = unTexMarkdownEscaping(res);
-            writeTextClipboard(markdownText || selectedText.toString());
-            chrome?.runtime.sendMessage({
-              extensionId: chrome?.runtime.id,
-              message: markdownText,
+            .then((res) => {
+              // 正则替换 TEX中的\_为_
+              const markdownText = unTexMarkdownEscaping(res);
+              writeTextClipboard(markdownText || selectedText.toString());
+              chrome?.runtime.sendMessage({
+                extensionId: chrome?.runtime.id,
+                message: markdownText,
+              });
+              resolve(markdownText);
+            })
+            .catch((e) => {
+              console.log(e);
+              reject(e);
             });
-            resolve(markdownText);
-          })
-          .catch((e) => {
-            console.log(e);
-            reject(e);
-          });
       }
     } catch (e) {
       console.log(e);
@@ -115,16 +118,17 @@ export function selectorHandle() {
     }
   });
 }
+
 export function transformRange(range) {
-  const { commonAncestorContainer } = range;
+  const {commonAncestorContainer} = range;
   if (commonAncestorContainer.nodeType === Node.TEXT_NODE)
     return range.cloneContents();
   const isTexNode = hasTexNode(commonAncestorContainer);
   let dom = isTexNode
-    ? getParentNodeIsTexNode(commonAncestorContainer)
-    : cloneRangeDom(range);
+      ? getParentNodeIsTexNode(commonAncestorContainer)
+      : cloneRangeDom(range);
   dom = setKatexText(dom);
-  console.log(dom, 'setKatexText');
+  console.log(dom, "setKatexText");
   // 如果是code节点则设置code 语言
   if (typeof dom.querySelector === "function") {
     dom = setCodeText(dom);
@@ -143,7 +147,9 @@ export function setCodeBlockLanguage(dom) {
   let codes = dom?.querySelectorAll?.("code-block");
   for (const code of codes) {
     const langNode = findFirstTextNode(code);
-    let lang = langNode?.textContent.toLocaleLowerCase().replace(/['"]/g, "");
+    let lang = langNode?.textContent
+        .toLocaleLowerCase()
+        .replaceAll(/['"]/g, "");
     if (langNode) {
       langNode.textContent = "";
     }
@@ -153,6 +159,7 @@ export function setCodeBlockLanguage(dom) {
     }
   }
 }
+
 // 优化code 代码
 export function setCodeText(dom) {
   // 根据pre下的第一个textNode 来判断code 语言
@@ -163,8 +170,8 @@ export function setCodeText(dom) {
     if (code) {
       code?.remove();
       let lang = findFirstTextNode(pre)
-        ?.textContent.toLocaleLowerCase()
-        .replace(/['"]/g, "");
+          ?.textContent.toLocaleLowerCase()
+          .replaceAll(/['"]/g, "");
       lang && code?.classList.add(`language-${lang}`);
       pre.innerHTML = "";
       pre.appendChild(code);
@@ -176,27 +183,29 @@ export function setCodeText(dom) {
 export async function astHtmlToMarkdown(node) {
   // 预处理孤立的 li 元素，将其包装为有序列表
   node = wrapOrphanListItems(node);
-  
+
   const container = document.createElement("div");
   container.append(node);
   let html = container.innerHTML;
   if (setting?.nbspConvert) {
-    html = html.replace(/&nbsp;/g, " ");
+    html = html.replaceAll("&nbsp;", " ");
   }
   const html2Markdown = await unified()
-    .use(rehypeParse)
-    .use(rehypeRemark, {
-      nodeHandlers: {
-        // 去除注释节点
-        comment(state, node, parent) {
-          return null;
+      .use(rehypeParse)
+      .use(rehypeRemark, {
+        nodeHandlers: {
+          // 去除注释节点
+          comment(_state, _node, _parent) {
+            return null;
+          },
         },
-      },
-    })
-    .use(remarkGfm)
-    .use(remarkStringify)
-    .process(html);
-  const markdown = fixTexDoubleEscapeInMarkdown(fixMathDollarSpacing(html2Markdown.value));
+      })
+      .use(remarkGfm)
+      .use(remarkStringify)
+      .process(html);
+  const markdown = fixTexDoubleEscapeInMarkdown(
+      fixMathDollarSpacing(html2Markdown.value),
+  );
   // 移除列表项之间的空行，使列表更紧凑
   return removeListEmptyLines(markdown);
 }
