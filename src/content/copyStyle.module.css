@@ -1,22 +1,27 @@
 .popupCopy {
-  --background: #fff;
-  --color: #202124;
-  position: fixed;
-  display: none;
-  left: 0;
-  top: 0;
-  font-weight: 700;
-  color: var(--color);
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease-in-out;
-  cursor: pointer;
-  z-index: 2147483647;
-  user-select: none;
+    position: fixed;
+    display: block; /* 改为 block，不用 flex */
+    left: 0;
+    top: 0;
+    font-weight: 700;
+    flex-direction: column;
+    align-items: flex-start; /* 左对齐，不居中 */
+    justify-content: flex-start;
+    z-index: 2147483647;
+    user-select: none;
+    background: transparent !important;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s,
+    visibility 0.2s;
+}
+
+.popupCopy > * {
+    pointer-events: auto;
 }
 
 .popupCopyShow {
-  display: block;
-  opacity: 1;
+    opacity: 1;
+    visibility: visible;
 }
