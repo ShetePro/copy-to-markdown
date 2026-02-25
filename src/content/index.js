@@ -41,9 +41,11 @@ getChromeStorage().then((res) => {
 
 watchChromeStorage((changes) => {
   const { newValue, oldValue } = changes;
-  Object.assign(setting, newValue);
-  if (newValue.selectionPopup !== oldValue.selectionPopup) {
-    newValue.selectionPopup ? togglePopup() : popupCopy?.hide();
+  if (newValue) {
+    Object.assign(setting, newValue);
+    if (newValue.selectionPopup !== oldValue?.selectionPopup) {
+      newValue.selectionPopup ? togglePopup() : popupCopy?.hide();
+    }
   }
 });
 // contentMenu click event
@@ -67,7 +69,7 @@ export function bindPopupEvent(event) {
     if (target !== popupCopy?.popup && !popupCopy?.popup?.contains(target)) {
       position.x = x;
       position.y = y;
-      if (!setting.selectionPopup) return;
+      if (!setting?.selectionPopup) return;
       togglePopup();
     }
   });
@@ -192,7 +194,6 @@ export function transformRange(range) {
     ? getParentNodeIsTexNode(commonAncestorContainer)
     : cloneRangeDom(range);
   dom = setKatexText(dom);
-  console.log(dom, "setKatexText");
   // 如果是code节点则设置code 语言
   if (typeof dom.querySelector === "function") {
     dom = setCodeText(dom);

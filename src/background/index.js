@@ -14,10 +14,10 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 /*
-* Establish a long connection to monitor the closing of the popup
-* Because when sendingMessage in the background, if the popup is not opened, an error will be reported
-* Error: Could not establish connection. Receiving end does not exist
-* */
+ * Establish a long connection to monitor the closing of the popup
+ * Because when sendingMessage in the background, if the popup is not opened, an error will be reported
+ * Error: Could not establish connection. Receiving end does not exist
+ * */
 chrome.runtime.onConnect.addListener((externalPort) => {
   externalPort.onDisconnect.addListener(() => {
     isOpenPopup = false;
@@ -41,7 +41,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 watchChromeStorage((changes) => {
   const { newValue, oldValue } = changes;
-  if (newValue.contextMenus !== oldValue.contextMenus) {
+  if (newValue && newValue.contextMenus !== oldValue?.contextMenus) {
     setContextMenus(newValue?.contextMenus);
   }
 });
