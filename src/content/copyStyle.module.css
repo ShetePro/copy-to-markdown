@@ -17,10 +17,6 @@
     visibility 0.2s;
 }
 
-.popupCopy > * {
-    pointer-events: auto;
-}
-
 .popupCopyShow {
     opacity: 1;
     visibility: visible;
