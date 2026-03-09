@@ -14,10 +14,10 @@
   border-radius: 50%;
   cursor: pointer;
 
-  /* 毛玻璃效果 - 极轻微模糊，高通透 */
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(4px) saturate(110%);
-  -webkit-backdrop-filter: blur(4px) saturate(110%);
+  /* 移除 backdrop-filter 以避免干扰文本选择，改用纯半透明背景 */
+  background: rgba(255, 255, 255, 0.5);
+  user-select: none;
+  -webkit-user-select: none;
 
   overflow: hidden;
   white-space: nowrap;
@@ -84,7 +84,7 @@
 .copyTransformBtn:active {
   width: 140px;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.25);
   border-color: rgba(255, 255, 255, 0.8);
 }
 
@@ -110,7 +110,7 @@
     /* 顶部微光保留 */ inset 0 -1px 1px rgba(255, 255, 255, 0.3),
     /* 外层阴影保持不变 */ 0 12px 32px rgba(0, 0, 0, 0.15),
     0 6px 12px rgba(0, 0, 0, 0.1);
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.2);
   transform: scale(0.97);
   transition: all 0.1s ease-out;
 }
@@ -138,6 +138,12 @@
   50% {
     opacity: 0.6;
   }
+}
+
+/* 展开时 container 也要跟着变圆角 */
+.copyTransformBtn:hover .copyTransformBtnContainer,
+.copyTransformBtn:active .copyTransformBtnContainer {
+  border-radius: 24px;
 }
 
 /* 子元素布局 - 禁用所有过渡 */
