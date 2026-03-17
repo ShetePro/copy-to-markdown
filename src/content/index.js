@@ -214,7 +214,8 @@ export function setCodeBlockLanguage(dom) {
     const langNode = findFirstTextNode(code);
     let lang = langNode?.textContent
       .toLocaleLowerCase()
-      .replaceAll(/['"]/g, "");
+      .replaceAll(/['"]/g, "")
+      .replaceAll(/\s+/g, "-");
     if (langNode) {
       langNode.textContent = "";
     }
@@ -236,7 +237,8 @@ export function setCodeText(dom) {
       code?.remove();
       let lang = findFirstTextNode(pre)
         ?.textContent.toLocaleLowerCase()
-        .replaceAll(/['"]/g, "");
+        .replaceAll(/['"]/g, "")
+        .replaceAll(/\s+/g, "-");
       lang && code?.classList.add(`language-${lang}`);
       pre.innerHTML = "";
       pre.appendChild(code);
