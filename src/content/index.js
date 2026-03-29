@@ -13,6 +13,7 @@ import {
   writeTextClipboard,
   removeListEmptyLines,
   wrapOrphanListItems,
+  extractValidClass,
 } from "../utils/util.js";
 import { PopupCopy } from "./popupCopy.js";
 import "./copyStyle.module.css";
@@ -221,7 +222,7 @@ export function setCodeBlockLanguage(dom) {
     }
     const codeDom = code.querySelector("code");
     if (lang && codeDom) {
-      codeDom.classList?.add(`language-${lang}`);
+      codeDom.classList?.add(`language-${extractValidClass(lang)}`);
     }
   }
 }

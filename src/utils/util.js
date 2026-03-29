@@ -215,3 +215,12 @@ export function removeListEmptyLines(markdown) {
 
   return result;
 }
+
+export function extractValidClass(className) {
+  if (!className) return "";
+
+  return className
+    .split(/\s+/) // 按空格拆分（兼容多个连续空格）
+    .filter((token) => token !== "language-code" && token !== "") // 剔除 'language-code' 和空字符串
+    .join(" "); // 重新拼接成干净的字符串
+}
